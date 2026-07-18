@@ -1,0 +1,12 @@
+{
+  "name": "@origin/claude-plugin",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Claude Code plugin: Origin hosted MCP + product-spec skill (synced from packages/skills)",
+  "scripts": {
+    "sync": "bun run scripts/sync-from-skills.ts",
+    "sync:assets": "bun run --cwd ../skills sync-assets && bun run sync"
+  },
+  "keywords": ["origin", "claude-code", "plugin", "mcp", "rpml"],
+  "license": "MIT"
+}

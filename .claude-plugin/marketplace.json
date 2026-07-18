@@ -1,0 +1,31 @@
+{
+  "name": "origin-claude-marketplace",
+  "owner": {
+    "name": "Origin",
+    "email": "hello@getoriginai.com"
+  },
+  "metadata": {
+    "description": "Origin product-spec skill + MCP (originai mcp / login). Public install surface for Claude Code.",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "origin",
+      "source": "./plugins/origin",
+      "description": "Origin RPML product-spec skill + local originai mcp. Run: npx originai login",
+      "version": "1.0.0",
+      "author": {
+        "name": "Origin",
+        "email": "hello@getoriginai.com"
+      },
+      "homepage": "https://getoriginai.com",
+      "keywords": [
+        "origin",
+        "rpml",
+        "mcp",
+        "product-spec"
+      ],
+      "repository": "https://github.com/21stware/originai-context"
+    }
+  ]
+}
