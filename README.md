@@ -1,18 +1,24 @@
 # Origin AI Context
 
-Public distribution for **Origin** coding-agent context:
+Public distribution for **Origin** coding-agent context (no private monorepo needed):
 
-- **Claude Code marketplace** — plugin with local MCP bridge (`originai mcp`) + product-spec skill
-- Installable without access to the private Origin monorepo
+1. **Claude Code marketplace** — plugin with local MCP (`originai mcp`) + skill
+2. **Agent Skills / skills.sh** — installable skill via `npx skills add`
+3. Pointers to npm CLI + hosted docs / well-known discovery
 
-## Claude Code
+## Install skill (skills.sh / Agent Skills)
 
-```text
-/plugin marketplace add 21stware/originai-context
-/plugin install origin@origin-claude-marketplace
+```bash
+# List skills in this repo
+npx skills add 21stware/originai-context --list
+
+# Install Origin product-spec skill into your agent(s)
+npx skills add 21stware/originai-context
+# or pin the skill name:
+npx skills add 21stware/originai-context --skill origin-product-spec-management
 ```
 
-Then in your product repo:
+Then authorize + bind a product project (skill alone has no token / project id):
 
 ```bash
 npx originai login
@@ -20,7 +26,27 @@ npx originai link --project <project-id>
 npx originai doctor
 ```
 
-Plugin MCP uses local stdio:
+Also discoverable over HTTP (site well-known):
+
+```bash
+npx skills add https://getoriginai.com
+# manifest: https://getoriginai.com/.well-known/agent-skills/index.json
+```
+
+## Claude Code (plugin marketplace)
+
+```text
+/plugin marketplace add 21stware/originai-context
+/plugin install origin@origin-claude-marketplace
+```
+
+```bash
+npx originai login
+npx originai link --project <project-id>
+npx originai doctor
+```
+
+Plugin MCP uses local stdio (login token — no day-to-day `export ORIGIN_TOKEN`):
 
 ```json
 {
@@ -33,30 +59,42 @@ Plugin MCP uses local stdio:
 }
 ```
 
-Requires published npm package [`originai`](https://www.npmjs.com/package/originai) for `originai mcp` / `login` / `link`.
+Requires npm [`originai`](https://www.npmjs.com/package/originai) (`>=0.7.0` for `mcp` / `doctor`).
 
 ## Other agents
 
 | Client | Path |
 |--------|------|
-| Cursor | `npx originai login && npx originai link --cursor --skill` + `originai mcp config --cursor` |
-| Codex | `npx originai login && npx originai link --codex --skill` |
-| Pi / Hermes / OpenCode | `npx originai login && npx originai link --skill` |
+| Any Agent Skills host | `npx skills add 21stware/originai-context` then `originai login` + `link` |
+| Cursor | login + `link --cursor --skill` + `originai mcp config --cursor` |
+| Codex | login + `link --codex --skill` |
+| Pi / Hermes / OpenCode | login + `link --skill` (or skills add above) |
 | Remote HTTP MCP (CI) | `https://mcp.getoriginai.com` + `ORIGIN_TOKEN` |
+
+## Repo layout
+
+```text
+.claude-plugin/marketplace.json     # Claude Code marketplace catalog
+plugins/origin/                     # Claude plugin (skill + .mcp.json)
+skills/origin-product-spec-management/   # Agent Skills / skills.sh entry
+  SKILL.md
+  rpml/...
+```
 
 ## Docs
 
 - Product: https://getoriginai.com
 - MCP & install: https://getoriginai.com/docs/reference/mcp
 - CLI: https://getoriginai.com/docs/reference/cli
-- skills.sh discovery: https://getoriginai.com/.well-known/agent-skills/index.json
+- Agent skills: https://getoriginai.com/docs/reference/agent-skills
+- skills.sh well-known: https://getoriginai.com/.well-known/agent-skills/index.json
 
 ## Maintainer note
 
-This repository is a **publish surface**. Edit skills/plugin in the private Origin monorepo, then run:
+This repository is a **publish surface**. Edit skill/plugin in the private Origin monorepo, then:
 
 ```bash
 bun run publish:originai-context
 ```
 
-Do not treat this repo as the source of truth for skill body or MCP tool schemas.
+Do not hand-edit skill bodies here — they will be overwritten on the next publish.
