@@ -101,9 +101,13 @@ pointer; never commit the token.
 
 ## Release badge (optional README) — how to add it
 
-Public release pages ship a Markdown badge image:
+Public release pages ship a badge image:
 `https://spec.getoriginai.com/<project_id>/<release_hash>/badge-dark.svg`
 (also `badge-light.svg`).
+
+**Use HTML for the link** (`<a target="_blank" rel="noopener noreferrer">`
+wrapping `<img>`), not `[![…](…)](…)` — CommonMark cannot open a new tab.
+GitHub and most Markdown hosts allow this subset.
 
 **Never add or edit the badge silently.** Follow this procedure when the user
 asks for a badge, or after a successful `sync` if `.origin.json` has no
@@ -126,11 +130,11 @@ asks for a badge, or after a successful `sync` if `.origin.json` has no
      `api_url` / `project_id` / `release_hash`).
    - Ensure root `README.md` exists (create a minimal one if missing).
    - Insert or replace this **exact** marker block (substitute real ids from
-     step 1; prefer `badge-dark`):
+     step 1; prefer `badge-dark`). The `<a target="_blank">` is required:
 
 ```md
 <!-- originai-release-badge:start -->
-[![originai](https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH/badge-dark.svg)](https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH)
+<a href="https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH" target="_blank" rel="noopener noreferrer"><img src="https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH/badge-dark.svg" alt="originai" /></a>
 <!-- originai-release-badge:end -->
 ```
 
