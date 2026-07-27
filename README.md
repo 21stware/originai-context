@@ -84,9 +84,9 @@ skills/origin-product-spec-management/   # Agent Skills / skills.sh entry
 ## Docs
 
 - Product: https://getoriginai.com
-- MCP & install: https://getoriginai.com/docs/reference/mcp
-- CLI: https://getoriginai.com/docs/reference/cli
-- Agent skills: https://getoriginai.com/docs/reference/agent-skills
+- MCP & install: https://getoriginai.com/docs/en/reference/mcp
+- CLI: https://getoriginai.com/docs/en/reference/cli
+- Agent skills: https://getoriginai.com/docs/en/reference/agent-skills
 - skills.sh well-known: https://getoriginai.com/.well-known/agent-skills/index.json
 
 ## Maintainer note

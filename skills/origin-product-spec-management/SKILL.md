@@ -38,9 +38,11 @@ Project config is in `.origin.json` (committed, no secrets):
 {
   "api_url": "<your Origin API URL>",
   "project_id": "<your Origin project id>",
-  "release_hash": null
+  "release_hash": null,
+  "sync_readme_badge": false
 }
 ```
+(`sync_readme_badge` is optional — omit until the user has been asked; `true` keeps the README badge updated on `sync`.)
 
 If this file is missing placeholders, run `npx originai link --project <id>` with real values.
 
@@ -97,6 +99,27 @@ There are two directions, and knowing which one you are in matters:
 Always keep `.origin.json` committed so every teammate shares the same sync
 pointer; never commit the token.
 
+## Release badge (optional README)
+
+Each published release has a Markdown badge (dark/light) at
+`https://spec.getoriginai.com/<project_id>/<release_hash>/badge-dark.svg`
+(and `badge-light.svg`). Example:
+
+```md
+[![originai](https://spec.getoriginai.com/<project_id>/<release_hash>/badge-dark.svg)](https://spec.getoriginai.com/<project_id>/<release_hash>)
+```
+
+**Do not silently edit the coding repo README.** Ask the user first whether they
+want a badge in `README.md` that stays updated when they sync releases:
+
+- If they **agree**: set `"sync_readme_badge": true` in `.origin.json` (commit it).
+- If they **decline**: set `"sync_readme_badge": false` so you do not ask again.
+
+When `sync_readme_badge` is `true`, `bunx originai sync` (and `get-diff --sync`)
+updates the badge block in `README.md` after advancing `release_hash`. The CLI
+may also ask once on an interactive TTY if the field is still unset. Users can
+paste the Markdown manually instead of enabling sync.
+
 ## Understanding RPML (read this before authoring)
 
 RPML replaces time with space: one `.rpml` = one `<page>` with exactly one
@@ -107,9 +130,9 @@ references **in `rpml/`** (do not re-derive them):
 
 - `rpml/references/spec-summary.md` — root structure, attributes, rules at a glance.
 - `rpml/references/element-index.md` — every element + its attributes.
-- `rpml/references/practise.md` — the authoring method (recursive decomposition, coverage matrix).
+- `rpml/references/practise.md` — the authoring method (IA-first, update restructure, recursive decomposition, coverage matrix).
 - `rpml/references/example-reference.rpml` — a complete worked example (the quality bar).
-- `rpml/prompts/generate-rpml.md` — author a new `.rpml` from requirements/code.
+- `rpml/prompts/generate-rpml.md` — author a new `.rpml` from requirements/code (IA gate before layout).
 - `rpml/prompts/rpml-to-code.md` — extract a spec from `.rpml` and implement it.
 - `rpml/prompts/rpml-diff-impact.md` — classify what changed between two versions.
 - `rpml/prompts/review-rpml.md` — check an existing `.rpml` for completeness.

@@ -13,6 +13,7 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | enum              | Canvas   | Horizontal row of mutually exclusive state/variant cards                                                                                                                                                   |
 | enum-item         | Canvas   | One state card with label and optional description; auto-numbered with a black square badge                                                                                                                |
 | anchor            | Canvas   | Cross-page link (to, optional section) to another screen in the file set                                                                                                                                   |
+| *(attr)* `link`   | Canvas   | On any snapshot control: `link="other.rpml"` (+ optional `link-section`) paints a path chip; ⌘/Ctrl+click jumps in workbench/viewer                                                                      |
 | diagram           | Canvas   | Mermaid → SVG (flow/state/sequence/ER); token-themed; node-radius / edge-radius soften sharp geometry                                                                                                        |
 
 ## Layout primitives
@@ -22,6 +23,7 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | viewport     | Layout   | Fixed-width snapshot viewport matching a device preset; auto height by default                                |
 | layout       | Layout   | CSS grid container with columns, rows, and gap attributes                                                     |
 | panel        | Layout   | White panel/card shell with optional padding and elevation                                                    |
+| pane         | Layout   | Logical region with **no visual chrome** (no border/fill/radius); optional `padding`/`width`; pin-friendly flat grouping |
 | navigator    | Layout   | Top navigation bar container                                                                                  |
 | sidebar      | Layout   | Side navigation container; supports collapsed state                                                           |
 | logo         | Layout   | Logo placeholder with size and label                                                                          |
@@ -92,8 +94,10 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | tab             | Navigation | Individual tab with label and optional badge                                                    |
 | pagination      | Navigation | Pagination control with total, current, and page-size                                           |
 | steps           | Navigation | Step indicator for multi-step flows with active step                                            |
-| breadcrumb      | Navigation | Trail: `items` list (`,` or `\|` per list-attr rules)                                           |
-| segmented       | Navigation | **Required** `options`; `active` = index or label. Empty → Day/Week/Month — never leave empty. List separators: see generate-rpml “List attributes”. |
+| breadcrumb      | Navigation | Prefer `breadcrumb-item` children with `link=`. Compact: `items` (+ optional `links`) |
+| breadcrumb-item | Navigation | Crumb host: `label`, optional `link` / `link-section` |
+| segmented       | Navigation | Prefer `segmented-item` children with `link=`. Compact: **required** `options` (+ optional `links`); `active` index or label. Empty → Day/Week/Month. |
+| segmented-item  | Navigation | Segment host: `label`, optional `link` / `pin` |
 | command-palette | Navigation | Command palette: `query`, `results` list                                                        |
 | context-menu    | Navigation | Menu: `items` list of short labels                                                              |
 | menu            | Navigation | Menu container                                                                                  |
@@ -165,14 +169,17 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 
 | Element          | Category | Description                                                        |
 | ---------------- | -------- | ------------------------------------------------------------------ |
-| ios-navbar       | iOS      | Nav bar: title, large, back, trailing / trailing-icon; trailing-pin pins the action for annotations |
-| ios-tabbar       | iOS      | `items` + `icons` (same count); **`active` = this page's tab** (index or label). Never hardcode 0 on every page. |
+| ios-navbar       | iOS      | Nav bar: title, large; `back` / `back-label`. Prefer children: `ios-nav-action` (`slot="trailing"`/`leading`) with per-action `link`/`pin`. Compact: trailing / trailing-icon + `trailing-links`/`trailing-pins`/`back-link`. |
+| ios-nav-action   | iOS      | Navbar action host: `icon` and/or `label`; own `link` / `link-section` / `pin`. |
+| ios-tabbar       | iOS      | Prefer children: `ios-tab` with `link`/`pin`. Compact: `items`+`icons` (+ optional `links`/`pins`). **`active` = this page's tab**. |
+| ios-tab          | iOS      | Single tab: `label`, `icon`, optional `link` / `pin` / `state="active"`. |
 | ios-list         | iOS      | Grouped list; optional `header` / `footer`                         |
 | ios-list-item    | iOS      | Row: `label`, optional **`detail`** (same-row trailing, e.g. `¥52,360`), `icon`, `chevron`, `sub` |
 | ios-action-sheet | iOS      | Prefer **child `ios-list-item`** for icon+label+value. Flat `actions` only for short labels; money/commas → `\|` or children. `title`, `destructive`, `cancel`. |
 | ios-alert        | iOS      | `title`, `message`, `actions` (short button labels, comma OK)       |
 | ios-switch       | iOS      | Toggle; optional `label`; `off` / state                            |
-| ios-segmented    | iOS      | **Required** `options` (real labels); `active` index or label. Empty → Day/Week/Month. |
+| ios-segmented    | iOS      | Prefer `ios-segment` children with `link=`. Compact: **required** `options` (+ optional `links`); `active` index or label. Empty → Day/Week/Month. |
+| ios-segment      | iOS      | Segment item: `label`, optional `link` / `pin` / `state="active"`. |
 | ios-button       | iOS      | iOS-style button (filled/tinted/plain)                             |
 | ios-search       | iOS      | iOS search bar                                                     |
 | ios-stepper      | iOS      | iOS stepper control                                                |
@@ -182,8 +189,8 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | Element         | Category | Description                                                                                                        |
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
 | chat            | Agent    | Conversation container wrapping the message stream                                                                 |
-| user-message    | Agent    | Right-aligned user message bubble                                                                                  |
-| agent-message   | Agent    | Left-aligned agent message (default role "Agent") with optional rich children                                      |
+| user-message    | Agent    | Full-width user turn; role title (`name`, default "User") is the first line of the text body — no chat bubble |
+| agent-message   | Agent    | Full-width agent turn; role title (`name`, default "Agent") is the first line of the text body — no chat bubble; `plain` for long-form article body |
 | system-message  | Agent    | Centered system/context note                                                                                       |
 | tool-call       | Agent    | Tool call; shows the tool name as headline + 工具 tag + status; args on their own line                             |
 | agent-output    | Agent    | Command/code/tool output block (kind: text/code/terminal)                                                          |
