@@ -99,26 +99,55 @@ There are two directions, and knowing which one you are in matters:
 Always keep `.origin.json` committed so every teammate shares the same sync
 pointer; never commit the token.
 
-## Release badge (optional README)
+## Release badge (optional README) — how to add it
 
-Each published release has a Markdown badge (dark/light) at
+Public release pages ship a Markdown badge image:
 `https://spec.getoriginai.com/<project_id>/<release_hash>/badge-dark.svg`
-(and `badge-light.svg`). Example:
+(also `badge-light.svg`).
+
+**Never add or edit the badge silently.** Follow this procedure when the user
+asks for a badge, or after a successful `sync` if `.origin.json` has no
+`sync_readme_badge` field yet (ask once, then stop asking).
+
+### Step-by-step (agent)
+
+1. **Read** `.origin.json` and take `project_id` + `release_hash`.
+   - If `release_hash` is `null`, run `bunx originai get-diff` (or MCP
+     `get_diff`) and use the response `to_hash` as the release hash. If there
+     is no published release yet, tell the user to publish in Origin first —
+     do not invent a hash.
+2. **Ask the user** (quote this intent):  
+   “Add an originai release badge to `README.md` and keep it updated on
+   `originai sync`? (yes / no)”
+3. **On decline**: set in `.origin.json`: `"sync_readme_badge": false`
+   (keep other fields). Commit if appropriate. Stop.
+4. **On agree**:
+   - Set `"sync_readme_badge": true` in `.origin.json` (merge; do not wipe
+     `api_url` / `project_id` / `release_hash`).
+   - Ensure root `README.md` exists (create a minimal one if missing).
+   - Insert or replace this **exact** marker block (substitute real ids from
+     step 1; prefer `badge-dark`):
 
 ```md
-[![originai](https://spec.getoriginai.com/<project_id>/<release_hash>/badge-dark.svg)](https://spec.getoriginai.com/<project_id>/<release_hash>)
+<!-- originai-release-badge:start -->
+[![originai](https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH/badge-dark.svg)](https://spec.getoriginai.com/PROJECT_ID/RELEASE_HASH)
+<!-- originai-release-badge:end -->
 ```
 
-**Do not silently edit the coding repo README.** Ask the user first whether they
-want a badge in `README.md` that stays updated when they sync releases:
+   - Place the block after the first `#` heading, or at the top of the file.
+   - If the markers already exist, replace only the content between them.
+5. **Optional**: run `bunx originai sync` so a newer CLI can refresh the same
+   marker block when `release_hash` advances. If sync asks about the badge and
+   the field is already set, it will not ask again.
+6. Show the user the badge Markdown and remind them to commit
+   `.origin.json` + `README.md`.
 
-- If they **agree**: set `"sync_readme_badge": true` in `.origin.json` (commit it).
-- If they **decline**: set `"sync_readme_badge": false` so you do not ask again.
+### Rules
 
-When `sync_readme_badge` is `true`, `bunx originai sync` (and `get-diff --sync`)
-updates the badge block in `README.md` after advancing `release_hash`. The CLI
-may also ask once on an interactive TTY if the field is still unset. Users can
-paste the Markdown manually instead of enabling sync.
+- Do **not** set `sync_readme_badge` without an explicit yes/no from the user.
+- Do **not** edit README badge content when `sync_readme_badge` is `false`.
+- When `sync_readme_badge` is `true` and you advance `release_hash` via sync,
+  update the marker block to the new hash (or rely on `originai sync` to do it).
 
 ## Understanding RPML (read this before authoring)
 
@@ -202,11 +231,13 @@ All reads default to the **latest published release**. `--read-type workspace`
 1. `get-diff` (read-only). Response includes `summary` + `files[]`. Each change has a unified **`diff`** (+/- markers). Default also embeds to-side `content`. **Implement from `diff` first** — do **not** loop `list-documents` / `get-document` for every file.
 2. `get-document` only for an unchanged dependency; prefer `grep`/`find` to locate it. Follow `rpml/prompts/rpml-to-code.md`.
 3. `sync` to advance `release_hash` once the code reflects the latest release.
+4. **Release badge (optional):** if `.origin.json` has no `sync_readme_badge` yet, follow **Release badge** above — ask the user, then write the flag + README marker block (never silently).
 
 **B. Track a new release → implement the diff (scenario: spec changed)**
 1. `get-diff` returns added/modified/renamed/deleted files with **unified `diff` (+/- markers) always**, plus to-side full `content` by default (omit bodies with `--content-mode none`).
 2. Classify impact per `rpml/prompts/rpml-diff-impact.md`, then implement only what changed — apply each file's `diff` first; use `content` when you need the full to-side body.
 3. `sync` to advance `release_hash` once implemented.
+4. If `sync_readme_badge` is `true`, refresh the README badge marker block to the new `release_hash` (see **Release badge**).
 
 **C. Index a codebase → write specs directly to Origin (no local files)**
 
