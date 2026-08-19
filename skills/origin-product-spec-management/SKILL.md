@@ -79,9 +79,9 @@ edits. Pass `--read-type workspace` to read the live `rpml_files` tree instead
 
 **Before staging anything, call `list-proposals --status all`** (or MCP
 `list_proposals` with `status: 'all'`). If a similar change was dismissed, read
-`dismiss_reason` and do not re-propose it. If your previous batch was applied,
-the spec has moved — re-read before continuing. Agents are not notified when a
-token-authored change is decided; asking is the only channel.
+`dismiss_reason` and do not file the same Change Request again. If your previous
+batch was applied, the spec has moved — re-read before continuing. Agents are
+not notified when a token-authored change is decided; asking is the only channel.
 
 What you can observe: `list-proposals` adds `decided_items[]` (each with
 `decision` and `dismiss_reason`) to every change request that has a decision,
@@ -90,15 +90,15 @@ unified `diff`s (`--with-content` adds bodies), `list-proposal-comments <id>`
 returns the discussion, and `list-proposal-reviews <id>` returns Ready / Not
 ready conclusions (a stale row was recorded before the latest write).
 
-**Writes after a release become change requests.** Reads still default to the latest
-published release. `write-document` on a released project does **not** fail — it
-stages a **change** waiting for someone to **apply** in Origin (`suggested: true`).
-Report that to the user. Keep writing to the same set by passing `proposal_id`
-on `write-document` (or MCP `proposal_id`). Use `--new-proposal` /
-`new_proposal: true` to open a second set. Do **not** copy that id into
-`.origin.json` unless this repo is about to implement it in code.
+**Writes after a release become Change Requests.** There is no
+`create_change_request` tool — the first `write-document` / MCP `write_document`
+creates the CR (`suggested: true` + `proposal_id`). Reads still default to the
+latest published release. Report that to the user. Keep writing to the same CR
+by passing `proposal_id` on `write-document` (or MCP `proposal_id`). Use
+`--new-proposal` / `new_proposal: true` to open a second CR. Do **not** copy
+that id into `.origin.json` unless this repo is about to implement it in code.
 `commit-proposal` seals the current write-wave without marking the set ready;
-`describe-proposal` writes the change request **message** a human reads:
+`describe-proposal` writes the Change Request **message** a human reads:
 **Issue** (`title` = one line, `note` = the problem), **Decisions** (what
 you chose and why) and **Changelog** (which documents changed and what each
 change does) in `rationale`. Do not leave this empty. `submit-proposal`
@@ -127,7 +127,7 @@ There are two directions, and knowing which one you are in matters:
   wrote with `list-documents --read-type workspace` (the default release read
   returns 404 until a release is published). The user then publishes a release
   in Origin, producing a new hash your next `get-diff` will sync to.
-  **After the first release, `write-document` stages a change request** — a
+  **After the first release, `write-document` creates a Change Request** — a
   human applies it in Origin. Always `list-proposals --status all` first;
   `describe-proposal` then `submit-proposal` when the batch is done.
   This is Workflow C (pre-release) or Workflow D (after a release) below.
@@ -227,7 +227,7 @@ Tool names match origin-api actions (snake_case). Pass `project_id` from
 | `get_document` | One file + content |
 | `get_diff` | Unified diff between hashes; default embeds to-side content. Prefer this over looping `get_document`. |
 | `grep_documents` / `find_documents` | Search content / names |
-| `write_document` / `delete_document` / `delete_documents` | Workspace writes (change requests after first release; pass `proposal_id` or `new_proposal`) |
+| `write_document` / `delete_document` / `delete_documents` | Workspace writes. After a release these **create or extend a Change Request** (`suggested: true` + `proposal_id`). There is no `create_change_request` tool. Pass `proposal_id` or `new_proposal`. |
 | `list_proposals` / `get_proposal` / `get_proposal_diff` / `describe_proposal` / `submit_proposal` / `commit_proposal` | Change review loop; describe_proposal writes Issue / Decisions / Changelog; release <> proposal diff |
 | `comment_proposal` / `list_proposal_comments` / `list_proposal_reviews` | Discuss a change request; read Ready / Not ready (agents never conclude) |
 | `validate` | RPML check (`source` and/or `file_id`) |
@@ -378,13 +378,14 @@ release exists. To read back what you just wrote, use
 
 **D. Iterate specs after a release (change request loop)**
 
-Once a release exists, writes from agents no longer mutate the workspace. Use this
-loop every time you update specs (new screen, confirmed code/spec gap, copy
-fix). `suggested: true` is success.
+Once a release exists, writes from agents no longer mutate the workspace. There is
+no `create_change_request` tool. Use this loop every time you update specs
+(new screen, confirmed code/spec gap, copy fix). `suggested: true` is success.
 
 1. **Read decisions first.** `list-proposals --status all` (MCP `list_proposals`
    with `status: "all"`). If a similar change was dismissed, read
-   `dismiss_reason` and do not re-propose it unless you addressed the feedback.
+   `dismiss_reason` and do not file the same dismissed Change Request unless you
+   addressed the feedback.
 2. **Read the current spec from the release** (`get-document` / `grep` /
    `find` — default release reads). Do not assume live workspace content.
 3. Author RPML, `validate --content`, then `write-document` (or MCP
