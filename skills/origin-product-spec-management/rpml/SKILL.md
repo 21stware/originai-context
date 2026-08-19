@@ -36,7 +36,7 @@ These are short and load-bearing — follow them even before opening the referen
 
 To preview, host the `.rpml` (playground `?rpml=`, `npx @21stware/rpui serve .`, or the compiler). Only as a secondary "embed in a page" option do you wrap it in HTML with a single `<script type="module" src="dist/rpui.js"></script>` — never the primary output.
 
-**Pin↔annotation parity.** Every `data-pin="N"` has exactly one top-level `<annotation id="N">`, and every numbered `<annotation id="N">` has exactly one `data-pin="N"`. Pins are consecutive from 1. A numbered annotation with no pin is a defect — route genuinely cross-cutting notes to `<annotation-global>` instead.
+**Pin↔annotation parity.** Every `data-pin="N"` has exactly one top-level `<annotation id="N">`, and every numbered `<annotation id="N">` has exactly one `data-pin="N"`. Pins are consecutive from 1. A numbered annotation with no pin is a defect — put other cross-cutting notes in `<annotation-global>`. Do not emit `<ia>` in the `.rpml`.
 
 **Overlay trigger pattern.** Overlays and transient feedback (`modal`, `drawer`, `dropdown`, `popover`, `tooltip`, `toast`) are interaction _results_, not page regions. Never place them in the main snapshot. Instead: pin the **trigger** (the button/row/menu entry that opens it), state the trigger condition + permission gate in the annotation body, and render the overlay **inside the annotation** as an `<enum>` of its variants.
 
