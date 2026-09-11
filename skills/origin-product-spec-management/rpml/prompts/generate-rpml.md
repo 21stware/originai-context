@@ -17,25 +17,27 @@ If inputs are missing, infer common SaaS/product states and make every assumptio
 
 ## Step 2 — Design information architecture (mandatory gate)
 
-**Do not write layout or content until this step is complete.** Layout is an expression of IA, not a replacement for it.
+**Do not write layout or content until this step is complete.** Layout is an expression of IA, not a replacement for it. Visual rank is how that IA is seen — lock it in 2.3 before picking cards, type sizes, or buttons.
 
 Order of work forever:
 
 ```text
-inputs → retrieve shots → IA (purpose + priority + regions) → representative state → layout → content/states
+inputs → retrieve shots → IA (purpose + priority + regions) → visual weight (sentence + bands + contrast) → representative state → layout → content/states
 ```
 
 ### 2.0 Retrieve layout shots (mandatory before layout)
 
-Before choosing regions or writing RPML, call Origin MCP `search_shots` (or origin-api `search_shots`) with:
+The catalog is a tree (`mobile` / `desktop` → page function → domain). `list_shot_facets` returns the **path array** of nodes that exist, e.g. `["desktop.home_root", "mobile.auth_entry"]`. Every entry has shots.
 
-1. `page_function` — the user job (required)
-2. `domain` — product category when known
-3. `device` — `mobile` or `desktop`
+Choose paths from that array on three axes — do not invent strings:
 
-Use the top hit's `summary`, `primary_action`, `ia_text`, and `rpml` as **constraints**: reproduce the job, P0 vs secondary, and structural recipe. Do not clone brand chrome. If nothing relevant hits, still write IA first, then layout from `../references/composition-guide.md` + skeletons — never from a widget gallery as a page standard.
+1. **Platform** — `mobile` vs `desktop` prefix
+2. **Business** — which product domain the page belongs to (commerce, ai_agent, …)
+3. **IA** — the page-function (`home_root`, `primary_list`, `auth_entry`, …)
 
-The widget composition shots later in this prompt are **primitive recipes** (how to nest list vs sidebar), not page standards. Page standards come from `search_shots`.
+Then call `retrieve_shots({ paths: ["desktop.home_root"] })` (MCP: `search_shots` with the same `paths`). One retrieve per page. A listed path always returns data. Use the hit's `summary`, `primary_action`, `ia_text` (and `get_shot` / `include_rpml` for RPML) as **constraints**. Do not clone brand chrome. If no path fits the screen, skip retrieve and write IA from `../references/composition-guide.md` + skeletons — never from a widget gallery as a page standard.
+
+The widget composition shots later in this prompt are **primitive recipes** (how to nest list vs sidebar), not page standards. Page standards come from `retrieve_shots`.
 
 ### 2.1 Product-level IA (multi-screen sets / README)
 
@@ -46,7 +48,7 @@ Decide before inventing pages:
 - What each screen **owns** vs. what is shared chrome.
 - Which user jobs map to which screens (no two screens fighting for the same P0 job without a reason).
 
-Encode product IA in `README.rpml` (and keep chrome consistent across screen files).
+Encode product IA in `README.rpml` (and keep chrome consistent across screen files). Also lock one **visual language** for the set: a single material (retail-flat / tool-dense / system-translucent) and one primary-action punctuation rule, so sibling screens don't mix card chrome with tool-dense hairlines.
 
 ### 2.2 Page-level IA (every screen, generate or update)
 
@@ -60,20 +62,44 @@ Lock these before any `<view>` body:
 
 Do **not** emit IA as RPML tags. Encode it in `page description`, pin order, and region labels. Gallery examples keep a sibling **plain-text** record (`kind: ia-text`, `media: text/plain`) for retrieval — grouping / scan-order / disclosure only. Primitive recipes (`list` vs `panel+flex`, `ios-tabbar` on desktop) belong in `../references/composition-guide.md`.
 
-### 2.3 Encode IA in the artifact
+### 2.3 Map IA to visual weight (mandatory, still before markup)
+
+P0/P1/P2 is **meaning**. The snapshot must also rank **attention**. Skip this and you get correct regions with no hierarchy: equal cards, two primary buttons, legal copy as loud as the title.
+
+Lock with the IA, then encode in primitives — **not** CSS (`style=` is illegal):
+
+1. **Visual sentence** — one sentence the screen communicates.
+2. **Must-see vs must-have** — must-see is loud; must-have (legal, timestamps, hints) stays `muted` / smaller / tertiary.
+3. **One protagonist + one action** — one dominant surface; **exactly one** `button variant="primary"` (or one filled `ios-button`) in the snapshot. Everything else `secondary` / `ghost`.
+4. **Band order** — Identity · Proof · Action. Tool/triage: Identity → Proof → Action. Exhibit/commerce: Proof → Identity → Action. Auth/checkout: Identity → Action, Proof quiet.
+5. **Alignment lock** — scan = start; ceremony = center; data = grid. One system per screen.
+6. **Contrast budget** — three ranks only: hero (area + isolation) · emphasis (heading / semibold / the one primary) · quiet (`text size="sm|xs" variant="muted"`, `heading level="6"`).
+
+**Distribution:** weight ≈ position × area × contrast × isolation. Spacing **groups** — tight `gap` (4–8) inside a decision, `12–16` inside a band, `24–32` when the band changes. Prefer `4 8 12 16 24 32`.
+
+**Surface jobs (one each):** `pane` = group with no chrome; `panel elevation="1"` / `card` = one lifted container, not every block; `bg="muted"` = rails/headers, not the P0 surface; `highlight` = the selected row; brand color = the one primary button, not headings. Motion, gradient, and material that RPML cannot paint go in the region's annotation as **Visual intent** (one or two sentences, no CSS).
+
+**Hard fail:** two primaries in the snapshot; equal-weight card/stat walls; title/price/legal/CTA at the same type rank; elevation or bordered+muted+highlight on every region.
+
+Full method: `../references/practise.md` §1c.
+
+### 2.4 Encode IA and visual weight in the artifact
 
 | Decision | RPML encoding |
 | -------- | ------------- |
 | Purpose + hierarchy emphasis | `page description` restates the job and what the snapshot privileges |
+| Visual sentence + band order | Same `description`: name the protagonist and the action, not only the data state |
 | Retrieval copy (Gallery / RAG only) | Sibling `ia-text` document (`text/plain`) — **not** inside the `.rpml` |
 | Region map | L1 pins/annotations named by role; pin order ≈ scan/importance order |
 | Priority | Dominant surface = P0; secondary columns/inspectors = P1; overflow/enums = P2 |
+| Visual rank | Hero = area/`flex="1"`/isolation; emphasis = type + one `variant="primary"`; quiet = `muted` / smaller |
 | Shared chrome | Same `app-shell` / nav / tabbar pattern as siblings; correct `active` |
+| Motion / material (not snapshot CSS) | Annotation **Visual intent** — not `style=` |
 | Cross-cutting policy (not IA) | `<annotation-global>` — not a fake numbered pin |
 
-**Hard fail:** equal-weight card grids with no primary; random side panels; new feature appended without re-ranking priority; overlays treated as permanent peer regions.
+**Hard fail:** equal-weight card grids with no primary; random side panels; new feature appended without re-ranking priority; overlays treated as permanent peer regions; two `variant="primary"` buttons competing in the snapshot.
 
-Full method depth: `../references/practise.md` §1b (IA first + update restructure rules).
+Full method depth: `../references/practise.md` §1b (IA first + update restructure rules) and §1c (visual weight).
 
 ## Step 3 — Choose representative state
 
@@ -87,7 +113,7 @@ Only after Steps 2–3, output a valid RPML file following this structure:
 <page
   title="Page Title"
   route="/route"
-  description="Snapshot shows [representative state]"
+  description="Snapshot shows [representative state]; [visual sentence / protagonist + action]"
 >
   <view device="desktop|tablet|mobile" scale="0.65">
     <viewport device="desktop|tablet|mobile">
@@ -97,8 +123,9 @@ Only after Steps 2–3, output a valid RPML file following this structure:
   </view>
 
   <annotation id="1" label="Region Name">
-    Trigger condition, data source, permission gate, validation rules, error
-    handling, boundary values.
+    IA role and visual intent (protagonist / emphasis / quiet; band; any
+    motion or material). Trigger condition, data source, permission gate,
+    validation rules, error handling, boundary values.
     <enum>
       <enum-item label="State A" description="When and why.">
         <!-- RPML primitive showing this state -->
@@ -118,6 +145,8 @@ Only after Steps 2–3, output a valid RPML file following this structure:
 **Use only RPML elements for product UI.** Never use `div`, `button`, `input`, `table`, `script`, or `style`.
 
 **No inline styles.** The `style="..."` attribute is illegal on every RPML element — styling is determined by element semantics, not CSS. The validator rejects any `style=` attribute. Pick the right RPML element/variant instead of styling your way around it.
+
+**Height (do not clip).** `view` / `viewport` / `app-shell` with a `device` preset are fixed-width and **auto-height**. Omit `height`, or write `height="auto"`. A numeric `height` on those frames **clips** overflowing content — that is the usual "new page is cut off" bug. Chrome pieces (`navigator height="52"`) may stay numeric. Never copy a gallery `height="560"` onto a real page.
 
 **Overlay pattern:** Do not place `modal`, `drawer`, `dropdown`, `popover`, `tooltip`, or `toast` in the main snapshot. Pin the trigger; render the overlay inside its annotation `<enum>`.
 
@@ -167,23 +196,24 @@ Pure accretion that creates dual primaries, dump regions, or stacked equal cards
 ## Quality targets
 
 - **IA first.** Purpose, priority stack, and region map decided before layout; snapshot visibly expresses them.
+- **Visual weight second.** Visual sentence, band order, alignment, and contrast budget decided before chrome; one protagonist, one primary action; must-haves that must not compete stay quiet. Not a CSS/skin pass.
 - **One annotation per pinned region — no target count.** Pin and annotate as many regions as the page actually has; a dense admin screen has many, a simple form has few. Do not pad to hit a number, and do not drop a real region to stay under one. Completeness, not a quota, decides breadth.
 - Nest as deep as the domain warrants — a simple stat card stays shallow; a data table with a detail drawer goes deep (region → element → state family → per-state rule → boundary). Let depth follow complexity, not a target.
 - Every conditional branch in `<enum>` — states, permission variants, validation outcomes, async results.
-- Annotation bodies at implementation depth: IA role, trigger, data source, state-machine transitions, permission gates, validation rules, error handling, boundary values.
+- Annotation bodies at implementation depth: IA role, visual intent, trigger, data source, state-machine transitions, permission gates, validation rules, error handling, boundary values.
 - **Updates restructure when hierarchy changes** — not only append content.
 
-For the full method — IA-first design, recursive decomposition (L1–L5), the coverage-matrix technique for combinatorial states, update restructure rules, and the annotation-body dimensions — see `../references/practise.md`. The complexity bar (annotation depth) is `../references/example-reference.rpml`. For **widget composition** — which primitives to reach for and how they nest — study the two galleries in the playground (`bun run dev` → `/preview/`): **Webapp → Primitives Gallery** (desktop/Web) and **Mobile → Mobile Widget Gallery** (`device="mobile"` iOS, one widget per card). The two shots below are distilled from them.
+For the full method — IA-first design, visual-weight mapping, recursive decomposition (L1–L5), the coverage-matrix technique for combinatorial states, update restructure rules, and the annotation-body dimensions — see `../references/practise.md`. The complexity bar (annotation depth) is `../references/example-reference.rpml`. For **widget composition** — which primitives to reach for and how they nest — study the two galleries in the playground (`bun run dev` → `/preview/`): **Webapp → Primitives Gallery** (desktop/Web) and **Mobile → Mobile Widget Gallery** (`device="mobile"` iOS, one widget per card). The two shots below are distilled from them.
 
 ## Widget composition (not page standards)
 
-These two snippets are **primitive recipes** — which widgets nest how. They are not page IA and not the layout standard. Constrain each new screen from `search_shots` (Step 2.0) first; copy composition idioms from here only. Row stacks use `list`/`list-item` (or `ios-list`/`ios-list-item` on iOS); `flex-layout`/`layout` are geometry only.
+These two snippets are **primitive recipes** — which widgets nest how. They are not page IA and not the layout standard. Constrain each new screen from `retrieve_shots` (Step 2.0) first; copy composition idioms from here only. Row stacks use `list`/`list-item` (or `ios-list`/`ios-list-item` on iOS); `flex-layout`/`layout` are geometry only.
 
 **Web (`device="desktop"`) — app shell + filter + data table:**
 
 ```html
 <viewport device="desktop">
-  <app-shell height="560">
+  <app-shell height="auto">
     <sidebar width="200">
       <logo label="ACME"></logo>
       <nav-item icon="home" label="Overview" state="active"></nav-item>

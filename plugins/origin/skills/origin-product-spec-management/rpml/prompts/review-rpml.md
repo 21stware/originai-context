@@ -22,6 +22,17 @@ You are an RPML reviewer. Given an RPML document, check it against the following
 - [ ] Overlays are not permanent peer regions of the primary job.
 - [ ] If this file was clearly **updated by accretion**, flag dual primaries, dump/misc regions, or new equal-weight cards that should have been re-homed — recommend a hierarchy restructure, not more append-only content.
 
+### Visual weight (IA made visible)
+
+- [ ] **Visual sentence** is restatable from `description` + snapshot (one job, not a collage).
+- [ ] **One protagonist** owns area/isolation; **exactly one** `variant="primary"` (or one filled `ios-button`) in the main snapshot unless an enum makes a second mutually exclusive.
+- [ ] **Band order** (Identity / Proof / Action) is visible and matches the job (tool vs exhibit vs checkout) — not a default equal stack.
+- [ ] **Alignment** is one system (start / center / grid), not mixed without a band reason.
+- [ ] **Contrast budget** is three ranks: hero / emphasis / quiet. Legal, timestamps, hints, and membership copy are `muted` / smaller — present, not loud.
+- [ ] **Spacing groups** decisions (tighter inside a unit, larger at band changes); not one gap everywhere.
+- [ ] **Surface jobs do not stack:** `pane` where chrome would compete; at most one elevation language; `bg="muted"` on rails/headers, not on P0; no `style=`; no extra `color="primary"` on headings.
+- [ ] Annotation bodies that need it include **Visual intent** (protagonist / quiet; motion or material if it affects implementation) — not CSS.
+
 ### Cross-page navigation
 
 - [ ] Every described transition to another screen uses `<anchor to="…">` and/or `link="….rpml"` on the real control — not prose-only.
@@ -51,7 +62,7 @@ You are an RPML reviewer. Given an RPML document, check it against the following
 
 ### Annotation body quality
 
-- [ ] Each L1/L2 annotation body covers the relevant subset of: **IA role** (why this region exists for the page job), trigger/entry condition, data source & refresh, state enumeration, permission gate, validation rule, error/async handling, boundary values.
+- [ ] Each L1/L2 annotation body covers the relevant subset of: **IA role** (why this region exists for the page job), **visual intent** (protagonist / emphasis / quiet; band; motion/material if relevant), trigger/entry condition, data source & refresh, state enumeration, permission gate, validation rule, error/async handling, boundary values.
 - [ ] Bodies read as implementation spec, not captions. Engineering can derive conditional-rendering logic; QA can derive test cases.
 - [ ] Assumptions (inferred states not present in inputs) are explicitly flagged.
 

@@ -95,7 +95,9 @@ ready conclusions (a stale row was recorded before the latest write).
 creates the CR (`suggested: true` + `proposal_id`). Reads still default to the
 latest published release. Report that to the user. Keep writing to the same CR
 by passing `proposal_id` on `write-document` (or MCP `proposal_id`). Use
-`--new-proposal` / `new_proposal: true` to open a second CR. Do **not** copy
+`--new-proposal` / `new_proposal: true` to open a second CR — never to
+split README vs screens of the same indexing pass. One indexing pass is one
+Change Request. Do **not** copy
 that id into `.origin.json` unless this repo is about to implement it in code.
 `commit-proposal` seals the current write-wave without marking the set ready;
 `describe-proposal` writes the Change Request **message** a human reads:
@@ -128,8 +130,10 @@ There are two directions, and knowing which one you are in matters:
   returns 404 until a release is published). The user then publishes a release
   in Origin, producing a new hash your next `get-diff` will sync to.
   **After the first release, `write-document` creates a Change Request** — a
-  human applies it in Origin. Always `list-proposals --status all` first;
-  `describe-proposal` then `submit-proposal` when the batch is done.
+  human applies it in Origin. Always `list-proposals --status all` first.
+  Indexing a released project is **one** Change Request (README + every
+  screen). Do not submit after the README. `describe-proposal` then
+  `submit-proposal` when the whole pass is done.
   This is Workflow C (pre-release) or Workflow D (after a release) below.
 
 Always keep `.origin.json` committed so every teammate shares the same sync
@@ -199,7 +203,7 @@ references **in `rpml/`** (do not re-derive them):
 
 - `rpml/references/spec-summary.md` — root structure, attributes, rules at a glance.
 - `rpml/references/element-index.md` — every element + its attributes.
-- `rpml/references/practise.md` — the authoring method (IA-first, update restructure, recursive decomposition, coverage matrix).
+- `rpml/references/practise.md` — the authoring method (IA-first, visual-weight mapping, update restructure, recursive decomposition, coverage matrix).
 - `rpml/references/example-reference.rpml` — a complete worked example (the quality bar).
 - `rpml/prompts/generate-rpml.md` — author a new `.rpml` from requirements/code (IA gate before layout).
 - `rpml/prompts/rpml-to-code.md` — extract a spec from `.rpml` and implement it.
@@ -231,11 +235,11 @@ Tool names match origin-api actions (snake_case). Pass `project_id` from
 | `list_proposals` / `get_proposal` / `get_proposal_diff` / `describe_proposal` / `submit_proposal` / `commit_proposal` | Change review loop; describe_proposal writes Issue / Decisions / Changelog; release <> proposal diff |
 | `comment_proposal` / `list_proposal_comments` / `list_proposal_reviews` | Discuss a change request; read Ready / Not ready (agents never conclude) |
 | `validate` | RPML check (`source` and/or `file_id`) |
-| `search_shots` / `get_shot` / `list_shot_facets` | Retrieve layout shot standards (IA + RPML) by domain, page_function, device — constrain generation from hits; widget galleries are composition only |
+| `search_shots` / `get_shot` / `list_shot_facets` | Layout shots. MCP: `search_shots`. In-app agent uses `retrieve_shots` (same catalog, different name). Pick by platform / business / IA; widget galleries are composition only |
+| `sync_origin_json` | Compute the `.origin.json` pointer to write after implementing a published release |
+| `list_webhooks` / `create_webhook` / `delete_webhook` | Outbound events (`release.published`, `proposal.decided`, `proposal.commented`) |
 
-**MCP has no `sync` tool.** After implementing a release, advance the local
-pointer with CLI: `bunx originai sync` (updates `.origin.json` `release_hash`).
-Or pass explicit `hash` / `to_hash` on the next `get_diff`.
+After implementing a release, call MCP `sync_origin_json` and write `origin_json` into `.origin.json`, or run CLI `bunx originai sync`.
 
 ### B. OriginAI CLI (fallback)
 
@@ -278,6 +282,15 @@ All reads default to the **latest published release**. `--read-type workspace`
 (or MCP `read_type: "workspace"`) for live pre-release trees.
 
 ## Workflows
+
+Pick the entry that matches how you arrived. **Both directions are first-class.**
+
+- **Repo → Origin** (existing codebase; empty or unbound project): **C**. If
+  unbound, `create-project` then `npx originai link --project <id>`.
+- **Origin → repo** (implement a published release): **A** / **B**.
+- **After a release, update specs from code or an agent:** **D**.
+- GitHub `originai / spec-review` is a **check, not a merge gate** (findings
+  are informational / `neutral`).
 
 **A. Understand a project's specs → implement**
 1. If `.origin.json` has `proposal_id`, `get-diff` / MCP `get_proposal_diff` (release <> that change request). Otherwise `get-diff` (last release vs latest). Response includes `summary` + `files[]` with unified **`diff`**. **Implement from `diff` first**.
@@ -354,11 +367,13 @@ flowchart LR
   workspace directly: create, update, or delete specs as needed, then remind
   the user to publish.
 
-- **A release already exists** — Do **not** treat this as Workflow C. Follow
-  **Workflow D** (change request loop) instead.
+- **A release already exists** — Do **not** write the workspace directly.
+  Follow **Workflow D**, still as **one** Change Request for the whole
+  index: README + every screen, then submit once. Do not submit after the
+  README and do not pass `new_proposal` to split them.
 
 For every spec you author:
-0. **Retrieve → constrain.** `search_shots` (MCP) with `page_function` + `domain` + `device`. Use the hit's IA (`summary`, `primary_action`, `ia_text`) and RPML recipe as the structural standard for this screen. Widget galleries are composition only — not page standards.
+0. **Retrieve → constrain.** `list_shot_facets` returns a path array. Pick by platform / business / IA, then MCP `search_shots` (in-app agent: `retrieve_shots`) with those paths — listed paths always have data. Use the hit's IA (`summary`, `primary_action`, `ia_text`) and RPML recipe as the structural standard. Widget galleries are composition only.
 1. Read the relevant code; author RPML content following
    `rpml/prompts/generate-rpml.md` and the references (IA gate before layout).
 2. `validate --content "<rpml>"` — **local** check, no network needed. Fix
@@ -368,7 +383,8 @@ For every spec you author:
    Use `create-project` then `npx originai link --project <id>` if no project
    is bound yet.
    Before the first release this writes the workspace directly. After a release,
-   follow Workflow D — do not stop at `write-document`.
+   follow Workflow D: keep staging into the same CR; submit only when the
+   whole pass is complete — do not submit after the README.
 
 **Before the first release**, remind the user to **publish** — default reads
 (`list-documents`, `get-diff`, etc.) cannot see workspace content until a
@@ -392,14 +408,17 @@ no `create_change_request` tool. Use this loop every time you update specs
    `write_document`). Expect `suggested: true` and a `proposal_id`.
 4. Keep staging into the **same** request: pass `proposal_id` / `--proposal`
    on later writes (including deletes). Use `--new-proposal` /
-   `new_proposal: true` only for a second, unrelated set.
+   `new_proposal: true` only for a second, unrelated set — never to split
+   README vs screens of the same indexing pass. One indexing pass is one
+   Change Request: write README.rpml first, then every screen, all on this
+   id. Do not submit after the README.
 5. **Describe** with `describe-proposal` / `describe_proposal`: Issue
    (`title`, `note`), Decisions + Changelog (`rationale`). Do not leave this
-   empty.
-6. **Submit** with `submit-proposal` / `submit_proposal` when the batch is
-   done. Optionally `comment-proposal` for follow-up. You may stage, describe,
-   commit, submit, and comment — **never apply, dismiss, or record a
-   conclusion**.
+   empty. Safe to call before more documents; it does not finish the CR.
+6. **Submit** with `submit-proposal` / `submit_proposal` when the whole
+   pass is done (README + every planned screen). Optionally
+   `comment-proposal` for follow-up. You may stage, describe, commit,
+   submit, and comment — **never apply, dismiss, or record a conclusion**.
 7. Tell the user: open **Change requests** in Origin, apply or dismiss, then
    **publish a new release**. Staging is not publishing; default reads stay on
    the old snapshot until they publish.

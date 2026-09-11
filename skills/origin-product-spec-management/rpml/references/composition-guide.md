@@ -26,8 +26,21 @@ Playground: full-screen Mobile / Webapp items keep IA off the RPML document. Ope
 | Layer | Responsibility | Do not |
 | --- | --- | --- |
 | Semantic containers | Express *what* (list of messages, settings group) | Encode ad-hoc spacing as the only structure |
-| Layout primitives | Express *how spaced* (gap, columns, align) | Fake lists, cards-as-pages, or navigation |
+| Layout primitives | Express *how spaced* (gap, columns, align) **and visual rank** | Fake lists, cards-as-pages, or navigation |
 | Platform (`ios-*`) | Match system look on mobile | Use for desktop admin shells |
+
+**Visual rank (from `practise.md` §1c):** after IA, pick primitives that spend contrast budget — not that decorate.
+
+| Need | Prefer | Avoid |
+| --- | --- | --- |
+| Protagonist work surface | `list` / `table` / large `image-placeholder` with `flex="1"` or the wide column | Four equal `card` / `stat-card` tiles as the page |
+| Group without competing | `pane` | `panel` on every subsection |
+| One lifted container | `panel elevation="1"` or `card` | `elevation="2"` on every block |
+| Quiet must-have (legal, time, hint) | `text size="sm\|xs" variant="muted"` | Same size as the title / price |
+| The page action | **One** `button variant="primary"` (or one filled `ios-button`) | Two primaries; a large ghost block "so it reads as CTA" |
+| Selected row | `highlight` on that row only | Highlight + bordered + muted + elevation together |
+| Stage vs content | `bg="muted"` on rails / section headers | `bg="muted"` on the P0 surface |
+| Band change | larger `gap` / `spacer` (24–32) | One gap value for the whole page |
 
 ---
 
@@ -278,7 +291,8 @@ Do not rely on click handlers.
 5. **Empty shell snapshot** as the only state (no data, no selection, no error enum).  
 6. **Brand cosplay** (copying IG/TikTok chrome) when the product is a tool/SaaS — prefer **Patterns**.  
 7. **Hard min-widths** / desktop tables forced into mobile viewports without `density="compact"`.  
-8. **HTML product controls** (`<button>`, `<input>`, raw `<div>` UI).  
+8. **HTML product controls** (`<button>`, `<input>`, raw `<div>` UI).
+9. **Equal-weight collage:** every region a `panel`, two `variant="primary"` buttons, title/meta/CTA at one type size. That is a visual-weight fail (`practise.md` §1c.7), not a missing widget.  
 
 ---
 

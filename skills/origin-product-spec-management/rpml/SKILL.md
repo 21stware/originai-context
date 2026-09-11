@@ -74,7 +74,7 @@ A side panel that is a _permanently docked_ structural region may appear open in
 
 Depth lives in these — do not re-derive it:
 
-- **Method** — IA-first design (purpose / priority / regions), update restructure rules, recursive decomposition L1–L5, coverage-matrix for combinatorial states, annotation-body dimensions, the what-NOT-to-do list: [`references/practise.md`](references/practise.md).
+- **Method** — IA-first design (purpose / priority / regions), visual-weight mapping (sentence / bands / contrast), update restructure rules, recursive decomposition L1–L5, coverage-matrix for combinatorial states, annotation-body dimensions, the what-NOT-to-do list: [`references/practise.md`](references/practise.md).
 - **Composition** — when to use `list` vs `flex-layout`, overlay pairing, few-shot index (Patterns / Webapp / Gallery): [`references/composition-guide.md`](references/composition-guide.md). Read this before inventing page chrome.
 - **Compressed spec** — root structure, attributes, rules at a glance: [`references/spec-summary.md`](references/spec-summary.md). Full language rules: `spec/`.
 - **Component reference** — every element and its attributes: `llms.txt` (authoritative). One-line element index: [`references/element-index.md`](references/element-index.md).
@@ -85,15 +85,16 @@ Depth lives in these — do not re-derive it:
 
 1. Gather inputs (requirement → screenshot → conditional code → permission matrix → async states → existing product/page IA). Make every inferred state explicit in an annotation.
 2. **Design information architecture first (gate)** — product nav/screen inventory when relevant; always page purpose, priority stack (P0/P1/P2), and region map (chrome / primary / secondary / tertiary / transient). Do **not** invent columns, cards, or tabs until this is fixed. See `references/practise.md` §1b.
-3. Pick the device preset (`desktop` desktop/admin, `tablet`, `mobile`) — prefer fixed-width, auto-height.
-4. Choose the **most information-dense representative state** for the snapshot that still respects the IA priority stack: loaded data, active selection, an open docked panel, role-specific controls, active validation. Never an empty shell.
-5. Build the snapshot inside `<view>` with RPML primitives so layout **expresses** the region map; add `data-pin="N"` in scan/importance order.
-6. Create one top-level `<annotation id="N">` per pin (labels = region roles).
-7. Apply recursive decomposition (L1→L5) and the coverage-matrix method to each region — see `references/practise.md`.
-8. Write annotation bodies at implementation depth (include IA role); expand every hidden interaction result into an `<enum>`.
-9. On **updates**: re-evaluate IA with the new requirement; restructure / re-home / renumber rather than pure append (`practise.md` §1b.5).
-10. Verify no forbidden patterns (HTML product UI, JS, external resources, absolute positioning).
-11. **Validate:** `bun run validate <file.rpml>` — fix every reported error before delivering; re-check the IA checklist yourself.
+3. **Map IA to visual weight (same gate)** — visual sentence, must-see vs must-have, one protagonist + one action, Identity/Proof/Action band order, alignment lock, three-rank contrast budget. Encode with RPML semantics (`gap`, `pane`/`panel`, type rank, one `variant="primary"`), not CSS. See `references/practise.md` §1c.
+4. Pick the device preset (`desktop` desktop/admin, `tablet`, `mobile`) — fixed-width, auto-height. Do **not** put a numeric `height` on `view` / `viewport` / `app-shell` (that clips the page). Chrome like `navigator height="52"` is fine.
+5. Choose the **most information-dense representative state** for the snapshot that still respects the IA priority stack: loaded data, active selection, an open docked panel, role-specific controls, active validation. Never an empty shell.
+6. Build the snapshot inside `<view>` with RPML primitives so layout **expresses** the region map **and** the contrast budget; add `data-pin="N"` in scan/importance order.
+7. Create one top-level `<annotation id="N">` per pin (labels = region roles).
+8. Apply recursive decomposition (L1→L5) and the coverage-matrix method to each region — see `references/practise.md`.
+9. Write annotation bodies at implementation depth (include IA role + visual intent); expand every hidden interaction result into an `<enum>`.
+10. On **updates**: re-evaluate IA with the new requirement; restructure / re-home / renumber rather than pure append (`practise.md` §1b.5). Re-rank visual weight when the protagonist or action changes (`practise.md` §1c).
+11. Verify no forbidden patterns (HTML product UI, JS, external resources, absolute positioning, `style=`).
+12. **Validate:** `bun run validate <file.rpml>` — fix every reported error before delivering; re-check the IA checklist (§1b.4) and visual-weight checklist (§1c.6) yourself.
 
 **Multi-screen products.** A prototype is rarely one file. Produce **one `.rpml` per screen or functional region**, named by route, and collect them in a directory the gallery can host (`serve`, the compiler, or playground folder-drop). Never cram multiple screens into one `<page>` — the one-`<view>` contract forbids it. The split signal is conceptual, not numeric: if a `<view>` is covering more than one screen or route, split it into separate files. Link the resulting screens with `<anchor to="other.rpml" section="N">` and state the entry/exit routes in each `description` so the set reads as one connected flow.
 
@@ -102,6 +103,7 @@ Depth lives in these — do not re-derive it:
 Before finishing, confirm:
 
 - **IA was designed before layout**; a reviewer can restate the primary job and region hierarchy from the snapshot + pins alone,
+- **visual weight was designed with IA**; a reviewer can name the visual sentence, the protagonist, and the one primary action; quiet must-haves stay muted,
 - pin numbers continuous and roughly follow importance/scan order; every pin has a matching top-level annotation,
 - the snapshot shows the most information-dense useful state **without violating the priority stack**,
 - updates restructured hierarchy when needed (no pure accretion / dual primaries / dump regions),
