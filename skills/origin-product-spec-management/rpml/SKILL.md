@@ -26,7 +26,7 @@ These are short and load-bearing — follow them even before opening the referen
 
 **Output contract (per file).** Each `.rpml` covers exactly one screen/region. Emit a bare `.rpml` file — root element `<page>`, **no HTML wrapper, no doctype**. The document holds:
 
-1. one `<page>` with `title`, `route` (the screen's URL path), and a `description` naming the representative state the snapshot captures — **or** `<page title="..." mode="doc">` for linear reference documents (release notes, specs) with no canvas or route,
+1. one `<page>` with `title`, `route` (the screen's URL path), and a short `description` of the page's role plus how it connects to sibling screens (not a feature inventory or snapshot-state note) — **or** `<page title="..." mode="doc">` for linear reference documents (release notes, specs) with no canvas or route,
 2. exactly one `<view device="desktop|tablet|mobile">` containing the main snapshot (usually inside a `<viewport device="…">`),
 3. snapshot content built with **RPML primitives only**,
 4. `data-pin="N"` on every meaningful region, numbered from 1 with no gaps,
@@ -40,7 +40,7 @@ To preview, host the `.rpml` (playground `?rpml=`, `npx @21stware/rpui serve .`,
 
 **Overlay trigger pattern.** Overlays and transient feedback (`modal`, `drawer`, `dropdown`, `popover`, `tooltip`, `toast`) are interaction _results_, not page regions. Never place them in the main snapshot. Instead: pin the **trigger** (the button/row/menu entry that opens it), state the trigger condition + permission gate in the annotation body, and render the overlay **inside the annotation** as an `<enum>` of its variants.
 
-```html
+```rpml
 <!-- main snapshot: only the trigger is pinned -->
 <button label="批量关闭" variant="danger" data-pin="5"></button>
 
@@ -83,7 +83,7 @@ Depth lives in these — do not re-derive it:
 
 ## Workflow
 
-1. Gather inputs (requirement → screenshot → conditional code → permission matrix → async states → existing product/page IA). Make every inferred state explicit in an annotation.
+1. Gather inputs (requirement → screenshot → conditional code → permission matrix → async states → existing product/page IA). Make every inferred state explicit in an annotation. **New product / empty set:** if scope, device, or primary job is still ambiguous, light-grill (one round, ≤3 questions) before `README.rpml`. Infer the rest.
 2. **Design information architecture first (gate)** — product nav/screen inventory when relevant; always page purpose, priority stack (P0/P1/P2), and region map (chrome / primary / secondary / tertiary / transient). Do **not** invent columns, cards, or tabs until this is fixed. See `references/practise.md` §1b.
 3. **Map IA to visual weight (same gate)** — visual sentence, must-see vs must-have, one protagonist + one action, Identity/Proof/Action band order, alignment lock, three-rank contrast budget. Encode with RPML semantics (`gap`, `pane`/`panel`, type rank, one `variant="primary"`), not CSS. See `references/practise.md` §1c.
 4. Pick the device preset (`desktop` desktop/admin, `tablet`, `mobile`) — fixed-width, auto-height. Do **not** put a numeric `height` on `view` / `viewport` / `app-shell` (that clips the page). Chrome like `navigator height="52"` is fine.
@@ -96,7 +96,7 @@ Depth lives in these — do not re-derive it:
 11. Verify no forbidden patterns (HTML product UI, JS, external resources, absolute positioning, `style=`).
 12. **Validate:** `bun run validate <file.rpml>` — fix every reported error before delivering; re-check the IA checklist (§1b.4) and visual-weight checklist (§1c.6) yourself.
 
-**Multi-screen products.** A prototype is rarely one file. Produce **one `.rpml` per screen or functional region**, named by route, and collect them in a directory the gallery can host (`serve`, the compiler, or playground folder-drop). Never cram multiple screens into one `<page>` — the one-`<view>` contract forbids it. The split signal is conceptual, not numeric: if a `<view>` is covering more than one screen or route, split it into separate files. Link the resulting screens with `<anchor to="other.rpml" section="N">` and state the entry/exit routes in each `description` so the set reads as one connected flow.
+**Multi-screen products.** A prototype is rarely one file. Produce **one `.rpml` per screen or functional region**, named by route, and collect them in a directory the gallery can host (`serve`, the compiler, or playground folder-drop). Never cram multiple screens into one `<page>` — the one-`<view>` contract forbids it. The split signal is conceptual, not numeric: if a `<view>` is covering more than one screen or route, split it into separate files. Link the resulting screens with `<anchor to="other.rpml" section="N">` and keep each `description` to role + entry/exit relationships so the set reads as one connected flow — do not restate that page's feature list.
 
 ## Quality bar
 

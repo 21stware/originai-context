@@ -41,6 +41,8 @@ The widget composition shots later in this prompt are **primitive recipes** (how
 
 ### 2.1 Product-level IA (multi-screen sets / README)
 
+**New product / empty project:** if scope, device, or primary job is still ambiguous, run the light initialization grill (one round, ≤3 questions) before encoding README. Infer nav, roles, and visual language; do not re-grill subsequent screens.
+
 Decide before inventing pages:
 
 - Screen inventory and routes (what exists, entry/exit).
@@ -60,7 +62,7 @@ Lock these before any `<view>` body:
 4. **Grouping & scan order** — what is read first; what is one decision unit.
 5. **Disclosure** — always visible vs. progressive vs. modal; how selection/filter/role changes hierarchy.
 
-Do **not** emit IA as RPML tags. Encode it in `page description`, pin order, and region labels. Gallery examples keep a sibling **plain-text** record (`kind: ia-text`, `media: text/plain`) for retrieval — grouping / scan-order / disclosure only. Primitive recipes (`list` vs `panel+flex`, `ios-tabbar` on desktop) belong in `../references/composition-guide.md`.
+Do **not** emit IA as RPML tags. Encode **page role + sibling-page relationships** in `page description` (one or two sentences — not a feature inventory). Encode hierarchy in pin order and region labels. Gallery examples keep a sibling **plain-text** record (`kind: ia-text`, `media: text/plain`) for retrieval — grouping / scan-order / disclosure only. Primitive recipes (`list` vs `panel+flex`, `ios-tabbar` on desktop) belong in `../references/composition-guide.md`.
 
 ### 2.3 Map IA to visual weight (mandatory, still before markup)
 
@@ -87,8 +89,8 @@ Full method: `../references/practise.md` §1c.
 
 | Decision | RPML encoding |
 | -------- | ------------- |
-| Purpose + hierarchy emphasis | `page description` restates the job and what the snapshot privileges |
-| Visual sentence + band order | Same `description`: name the protagonist and the action, not only the data state |
+| Purpose + sibling relationships | `page description` — 1–2 sentences: this route's role, and how it connects to other screens (entry / next / back). Not a feature list, snapshot-state note, or visual sentence |
+| Visual sentence + band order | Snapshot composition (hero surface + one primary) + annotation **Visual intent** — not a prose dump in `description` |
 | Retrieval copy (Gallery / RAG only) | Sibling `ia-text` document (`text/plain`) — **not** inside the `.rpml` |
 | Region map | L1 pins/annotations named by role; pin order ≈ scan/importance order |
 | Priority | Dominant surface = P0; secondary columns/inspectors = P1; overflow/enums = P2 |
@@ -107,13 +109,13 @@ The main snapshot shows the **most information-dense representative state** of t
 
 ## Step 4 — Build the document
 
-Only after Steps 2–3, output a valid RPML file following this structure:
+Only after Steps 2–3, output a valid RPML file following this structure. When quoting RPML in a chat reply, fence it as ```rpml (never html or xml) so the host can preview and syntax-highlight it.
 
-```html
+```rpml
 <page
   title="Page Title"
   route="/route"
-  description="Snapshot shows [representative state]; [visual sentence / protagonist + action]"
+  description="[page role]; [how it connects to sibling screens]"
 >
   <view device="desktop|tablet|mobile" scale="0.65">
     <viewport device="desktop|tablet|mobile">
@@ -139,6 +141,14 @@ Only after Steps 2–3, output a valid RPML file following this structure:
   <!-- repeat for each pin -->
 </page>
 ```
+
+**`page description` (keep short).** One or two sentences: (1) this screen's role in the product, (2) how it connects to sibling screens (entry / next / back). A lone page needs only the role.
+
+```text
+企业 IT 服务台的工单列表。从工作台进入；点行进 ticket-detail.rpml，新建进 ticket-new.rpml。
+```
+
+Do **not** put a feature inventory, snapshot-state note ("主管视角 + 已选 3 行"), visual sentence, or P0/P1 stack in `description`. Those belong in pins and annotations.
 
 ## Rules
 
@@ -168,7 +178,7 @@ Hard rules:
 
 README / document-mode flowcharts are **horizontal** (`flowchart LR` / `graph LR`) so the process reads left-to-right. Diagrams render at mermaid's intrinsic 1:1 size and are **not** squeezed to the prose column — keep node labels short, and split flows longer than about 6 steps. State machines and trees may use `TD`. Sequence diagrams are already horizontal.
 
-```html
+```rpml
 <diagram>
 flowchart LR
   A[列表] --> B{有筛选?}
@@ -188,7 +198,7 @@ When changing an existing `.rpml`, **do not default to incremental append**.
 1. Reconstruct the current IA (purpose, priority stack, region map) from the file + README.
 2. Fold the new requirement into that model: does it extend P0, promote a secondary, add a region, split a screen, or demote something?
 3. Choose the structural response (re-home, reorder, split, deepen) — see `practise.md` §1b.5 table.
-4. Apply the smallest markup change that implements the **new** hierarchy; renumber pins if scan order changed; update `description` when P0 changed.
+4. Apply the smallest markup change that implements the **new** hierarchy; renumber pins if scan order changed; rewrite `description` only if the page's role or sibling relationships changed.
 5. Keep sibling chrome/nav consistent when the product IA shifts.
 
 Pure accretion that creates dual primaries, dump regions, or stacked equal cards is a failed update.
@@ -211,7 +221,7 @@ These two snippets are **primitive recipes** — which widgets nest how. They ar
 
 **Web (`device="desktop"`) — app shell + filter + data table:**
 
-```html
+```rpml
 <viewport device="desktop">
   <app-shell height="auto">
     <sidebar width="200">
@@ -241,7 +251,7 @@ These two snippets are **primitive recipes** — which widgets nest how. They ar
 
 **Mobile (`device="mobile"`) — iOS shell + grouped list + tab bar:**
 
-```html
+```rpml
 <viewport device="mobile" height="auto">
   <app-shell height="auto">
     <ios-navbar title="Settings" large></ios-navbar>
@@ -286,14 +296,14 @@ Many primitives take a **list attribute** (parsed by the runtime as a list of st
 ### Priority (pick the highest that fits)
 
 1. **Structured rows → child elements** (preferred when a row has icon + label + trailing value, or multi-field cells):
-   ```html
+   ```rpml
    <ios-action-sheet title="选择账户">
      <ios-list-item icon="building" label="招商银行" detail="¥52,360"></ios-list-item>
      <ios-list-item icon="wallet" label="微信钱包" detail="¥3,870"></ios-list-item>
    </ios-action-sheet>
    ```
 2. **Short tokens with no internal comma → comma `,`** (default for enums of short labels / icon ids / pure numbers):
-   ```html
+   ```rpml
    <!-- Prefer children when segments/tabs navigate (per-item link=). Compact CSV still OK. -->
    <ios-segmented options="支出,收入,转账" active="0" links="expense.rpml,income.rpml,"></ios-segmented>
    <ios-tabbar items="首页,流水,报表,我的" icons="home,list,bar-chart-2,user" active="我的" links="home.rpml,ledger.rpml,report.rpml,me.rpml"></ios-tabbar>
@@ -301,7 +311,7 @@ Many primitives take a **list attribute** (parsed by the runtime as a list of st
    <chart data="12,28,18,34" labels="Q1,Q2,Q3,Q4"></chart>
    ```
 3. **Any item may contain `,` (money thousands, addresses, sentences) → pipe `|` as the list separator** for the **whole** attribute:
-   ```html
+   ```rpml
    <!-- NEVER: actions="招商 · ¥52,360,微信 · ¥3,870"  → splits into "¥52" and "360" -->
    actions="招商银行 · ¥52,360|微信钱包 · ¥3,870|现金 · ¥1,200"
    columns="姓名|城市|备注"
@@ -374,7 +384,7 @@ These failures look like "bad layout" but are almost always **wrong or missing a
    | Dense admin create | 3-col | `form columns="3"` |
 
    **Wrong (looks sparse / toy):**
-   ```html
+   ```rpml
    <modal title="New bill"><form>
      <form-item label="Name">…</form-item>
      <form-item label="Amount">…</form-item>
@@ -382,7 +392,7 @@ These failures look like "bad layout" but are almost always **wrong or missing a
    </form></modal>
    ```
    **Right:**
-   ```html
+   ```rpml
    <modal title="New bill" width="440" has-footer>
      <form columns="2" gap="12">
        <form-item label="Name" required span="all"><input placeholder="e.g. Rent"></input></form-item>
@@ -394,7 +404,7 @@ These failures look like "bad layout" but are almost always **wrong or missing a
    </modal>
    ```
    **Settings density:**
-   ```html
+   ```rpml
    <form gap="10">
      <form-item layout="row" label="Display name"><input state="filled" value="Oboo"></input></form-item>
      <form-item layout="row" label="Timezone"><select value="Asia/Shanghai" options="Asia/Shanghai,UTC"></select></form-item>

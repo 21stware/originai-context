@@ -40,6 +40,8 @@ If you skip IA, you get pretty but incoherent screens: equal-weight cards, rando
 
 Product-level IA usually lives in `README.rpml` (route map, modules, flows). Page-level IA is decided **every time** you generate or materially update a screen — even when the README already exists.
 
+**New product:** if scope, device, or primary job is still ambiguous, a light grill (one round, ≤3 questions) before `README.rpml`. Infer the rest from the brief. Subsequent screens use the README; do not re-grill unless the user reopens scope.
+
 ### 1b.2 Page IA model (required mental model)
 
 Before writing `<view>` content, lock these five layers:
@@ -65,7 +67,7 @@ IA is not a private thought — encode it so layout and annotations cannot drift
 | ----------- | ------------------------------- |
 | Page IA (retrieval, not RPML) | Sibling `ia-text` record (`text/plain`) — purpose, priority, regions, grouping. Gallery dock only. **Never** `<ia>` tags |
 | Grouping / disclosure rules | Same `ia-text` Do / Don't — scan order, sectioning, chrome vs primary. **Not** primitive recipes (`list` vs `flex`, `ios-tabbar`) |
-| Screen purpose + representative hierarchy | `<page description="…">` — name the job and the hierarchy emphasis, not only the data state |
+| Screen role + sibling relationships | `<page description="…">` — 1–2 sentences: what this route is for, and how it connects to other screens. Not a feature list, snapshot-state note, or visual sentence |
 | Cross-page nav model | README route map + each screen's chrome (sidebar active item / tabbar active / breadcrumb) |
 | Region map | `data-pin` order follows **importance / reading order**, not arbitrary paint order; L1 annotation labels match region roles ("Primary list", "Context inspector") |
 | Priority (P0/P1/P2) | Snapshot composition: P0 fills the dominant surface; P1 sits adjacent; P2 in overflow, accordion, or annotation-only |
@@ -101,7 +103,7 @@ Edits that add capability almost always change hierarchy. **Default is wrong:** 
 **Hard rules for updates:**
 
 1. **Read the current page (and README) first** — reconstruct the existing region map and priority stack before editing.
-2. **Name the IA delta** in your reasoning (and briefly in `description` or a global note when the hierarchy changed): what was P0 before, what is P0 after.
+2. **Name the IA delta** in your reasoning (and a global note when the hierarchy changed): what was P0 before, what is P0 after. Rewrite `description` only if the page's role or sibling relationships changed — do not dump the new feature list into it.
 3. **Prefer re-homing over stacking** — if a new filter, metric, or action is added, place it where the hierarchy says it belongs; do not append a fifth equal card under four existing ones.
 4. **Renumber pins when scan order changes** — pin order is part of the IA narrative.
 5. **Keep sibling screens consistent** — if nav, IA module boundaries, or shared chrome change, update related files in the same pass when the user is editing the product set.
@@ -195,7 +197,7 @@ Do not stack border + elevation + `bg="muted"` + `highlight` + `bordered` on the
 
 | Decision | Where it appears |
 | -------- | ---------------- |
-| Visual sentence + band order | `page description` — job **and** what the snapshot privileges ("Waiting queue; list is P0, inspector is P1, Reply is the action") |
+| Visual sentence + band order | Snapshot composition (hero surface + one primary) + annotation **Visual intent** — not a prose dump in `page description` |
 | Protagonist | Dominant surface + pin 1 (or the pin on that surface); L1 label names the role, not the widget |
 | Action | Exactly one `variant="primary"` (or one filled `ios-button`) in the main snapshot |
 | Quiet must-haves | `muted` / smaller type / tertiary region / annotation enum — **present**, not loud |
@@ -268,7 +270,7 @@ L1/L2 bodies must read like a spec, not a caption. For a non-trivial region, cov
 
 Some notes don't belong to any single pinned region: a role/permission matrix that spans the whole page, a global empty/error/loading policy, a glossary of domain terms, page-wide conventions, **or the page-level IA summary** (purpose + priority stack) when it helps implementers. **Do not** invent a numbered annotation for these — a numbered annotation must always have a matching pin. Put them in `<annotation-global label="…">`, which is pin-less by design and renders at the top of the annotation pane (the "0th" annotation):
 
-```html
+```rpml
 <annotation-global label="角色权限矩阵">
   三类角色能力差异，供研发实现 RBAC、QA 设计权限用例。
   <enum>
@@ -317,6 +319,7 @@ Reference: [`example-reference.rpml`](example-reference.rpml) (bundled with this
 - **Do not write `style=`** or invent palettes / gradients in markup. Surface that RPML cannot paint goes in **Visual intent**, not CSS.
 - **Do not update by pure append** — re-rank hierarchy; restructure regions when new content changes the primary job.
 - **Do not create two visual primaries** or a catch-all "other" region to avoid IA decisions.
+- **Do not write a long `page description`.** Role + sibling-page relationships only. Features, snapshot state, and visual sentence belong in pins/annotations.
 
 ## 7. Validation
 

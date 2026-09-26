@@ -27,6 +27,12 @@ npx originai login
 # stores token in ~/.origin/settings.json — never commit
 ```
 
+**Unbound repo (no Origin project yet):** install this skill, then follow
+Workflow C — `create-project` writes `.origin.json`.
+```bash
+npx skills add 21stware/originai-context
+```
+
 **Once per product repo (bind project + optional skill files):**
 ```bash
 npx originai link --project <your Origin project id>
@@ -86,9 +92,9 @@ not notified when a token-authored change is decided; asking is the only channel
 What you can observe: `list-proposals` adds `decided_items[]` (each with
 `decision` and `dismiss_reason`) to every change request that has a decision,
 `get-proposal <id>` shows the same per item plus write-wave `batches[]` and
-unified `diff`s (`--with-content` adds bodies), `list-proposal-comments <id>`
-returns the discussion, and `list-proposal-reviews <id>` returns Ready / Not
-ready conclusions (a stale row was recorded before the latest write).
+unified `diff`s (`--with-content` adds bodies), and `list-proposal-reviews <id>`
+returns Ready / Not ready conclusions (a stale row was recorded before the
+latest write).
 
 **Writes after a release become Change Requests.** There is no
 `create_change_request` tool — the first `write-document` / MCP `write_document`
@@ -105,8 +111,8 @@ that id into `.origin.json` unless this repo is about to implement it in code.
 you chose and why) and **Changelog** (which documents changed and what each
 change does) in `rationale`. Do not leave this empty. `submit-proposal`
 seals the wave **and** marks the set ready (and can take the same fields).
-Use `comment-proposal` for follow-up discussion. You may stage, describe,
-commit, submit, and comment — **never apply, dismiss, or record a conclusion**.
+You may stage, describe, commit, and submit — **never apply, dismiss, or
+record a conclusion**.
 Direct writes only happen when the project has **no release yet**, or when
 `project_write_mode` is `direct` (rare).
 
@@ -233,11 +239,11 @@ Tool names match origin-api actions (snake_case). Pass `project_id` from
 | `grep_documents` / `find_documents` | Search content / names |
 | `write_document` / `delete_document` / `delete_documents` | Workspace writes. After a release these **create or extend a Change Request** (`suggested: true` + `proposal_id`). There is no `create_change_request` tool. Pass `proposal_id` or `new_proposal`. |
 | `list_proposals` / `get_proposal` / `get_proposal_diff` / `describe_proposal` / `submit_proposal` / `commit_proposal` | Change review loop; describe_proposal writes Issue / Decisions / Changelog; release <> proposal diff |
-| `comment_proposal` / `list_proposal_comments` / `list_proposal_reviews` | Discuss a change request; read Ready / Not ready (agents never conclude) |
+| `list_proposal_reviews` | Read Ready / Not ready (agents never conclude) |
 | `validate` | RPML check (`source` and/or `file_id`) |
 | `search_shots` / `get_shot` / `list_shot_facets` | Layout shots. MCP: `search_shots`. In-app agent uses `retrieve_shots` (same catalog, different name). Pick by platform / business / IA; widget galleries are composition only |
 | `sync_origin_json` | Compute the `.origin.json` pointer to write after implementing a published release |
-| `list_webhooks` / `create_webhook` / `delete_webhook` | Outbound events (`release.published`, `proposal.decided`, `proposal.commented`) |
+| `list_webhooks` / `create_webhook` / `delete_webhook` | Outbound events (`release.published`, `proposal.decided`) |
 
 After implementing a release, call MCP `sync_origin_json` and write `origin_json` into `.origin.json`, or run CLI `bunx originai sync`.
 
@@ -267,8 +273,6 @@ Prefer `bunx originai <command>` (~40ms) over `npx originai` (~1.2s).
 | `describe-proposal <id> --title "…" [--note "…" --rationale "…" ]` | Change request message: Issue (`title`/`note`), Decisions + Changelog (`rationale`) |
 | `submit-proposal <id> --title "…"` | Mark ready. Same Issue / Decisions / Changelog fields if not described yet |
 | `commit-proposal <id> [--note "…" ]` | Seal the current write-wave without marking ready |
-| `comment-proposal <id> --body "…" [--item <itemId>]` | Discuss a change (never conclude) |
-| `list-proposal-comments <id>` | Read the discussion on a change request |
 | `list-proposal-reviews <id>` | Ready / Not ready conclusions |
 
 Short aliases: `ls`, `ls-docs`, `get`, `create`, `write`, `delete`/`rm`, `diff`.
@@ -286,6 +290,7 @@ All reads default to the **latest published release**. `--read-type workspace`
 Pick the entry that matches how you arrived. **Both directions are first-class.**
 
 - **Repo → Origin** (existing codebase; empty or unbound project): **C**. If
+  this skill is missing, `npx skills add 21stware/originai-context`. If
   unbound, `create-project` then `npx originai link --project <id>`.
 - **Origin → repo** (implement a published release): **A** / **B**.
 - **After a release, update specs from code or an agent:** **D**.
@@ -311,24 +316,57 @@ if a release exists, `list-documents`:
 
 - **Empty project (no release, no documents)** — If this repo is not linked,
   `create-project` then `npx originai link --project <id>` so `.origin.json`
-  exists. Initialize **fully** in one pass. Write `README.rpml` **first** — it
-  is the product-design document (`mode="doc"`), not a prototype screen. Author
-  it from your understanding of the codebase, `validate --content`, then
-  `write-document --name "README.rpml" --content "<rpml>"` to push it to Origin.
+  exists. Explore the codebase for **facts** (do not ask the user what you
+  can look up). Then a light grill if needed — **do not write any `.rpml`
+  until they reply go or adjust**:
+
+**Design alignment (grill) — before any `.rpml`.**
+Keep it light. Default is **one round, at most 3 questions**. Infer the rest
+from the brief and the codebase; state those assumptions in the same
+message. A second round only if an answer opens a real fork. Do not walk
+every design branch.
+
+Ask only what still blocks a first spec set:
+
+- **Scope** — what is IN vs deferred this pass (auth / admin / settings
+  are the usual fork)
+- **Device** — mobile, desktop, or both — only if the brief/code is silent
+- **Who / primary job** — only if that is still ambiguous
+
+Skip the grill entirely when the brief already answers those. Never ask
+what you can look up. Nav model, visual language, roles, and empty/error
+coverage are yours to infer — the user corrects after they see the README.
+
+Format (one message):
+
+❓ **Q1** — **<title>**: <one-line body + choices>
+
+➡️ <recommended answer>
+
+Close the same message with a 3-bullet recap (scope / device / job) and
+"Reply **go** or adjust — then I write the spec." Do not write any
+`.rpml` until they say go or give the adjustment.
+
+  After alignment, initialize **fully** in one pass. Write `README.rpml`
+  **first** — it is the product-design document (`mode="doc"`), not a
+  prototype screen. Author it from the **settled** decisions (not silent
+  inference), `validate --content`, then `write-document --name
+  "README.rpml" --content "<rpml>"` to push it to Origin.
 
   Then **immediately continue**: for every page/route listed in the README's
   page/route planning, author one `.rpml` prototype screen spec, `validate
   --content`, and `write-document` it to Origin. Do **not** stop and wait after
-  the README — drive the whole initialization to completion in this pass. Only
-  pause if the user explicitly asks to review the README before screens.
+  the README — the grill already aligned the IA. Only pause if the user
+  explicitly asks to review the README before screens.
 
   `README.rpml` must cover: product overview, functional modules, page/route
-  planning (complete and self-consistent — include login/signup flow, admin
-  screens, and core product logic with no gaps), key interaction flows
-  (`<diagram>` with Mermaid), and roles/permissions if applicable. For mobile
-  pages, include tab structure and main UX flow descriptions. The page/route
-  planning section is the worklist for the screen specs you write next — make
-  it exhaustive, because every entry becomes a `.rpml`.
+  planning (complete and self-consistent **for the settled scope** — include
+  login/signup, admin, and core logic only when the grill left them IN;
+  list deferred surfaces as OUT of scope, do not invent them), key
+  interaction flows (`<diagram>` with Mermaid), and roles/permissions if
+  applicable. For mobile pages, include tab structure and main UX flow
+  descriptions. The page/route planning section is the worklist for the
+  screen specs you write next — every IN-scope entry becomes a `.rpml`.
 
   Skeleton:
   ```html
@@ -357,11 +395,12 @@ flowchart LR
   what was written and any gaps to the user, and remind them to publish a
   release in Origin.
 
-- **Only README.rpml exists** — Continue the initialization: author the
+- **Only README.rpml exists** — Treat the README as aligned. Author the
   remaining prototype screen specs (one `.rpml` per page/route the README
   planned that hasn't been written yet), validate + write each, until every
   planned page exists in Origin. Don't wait to be asked — drive it to
-  completion, then report and remind the user to publish a release.
+  completion, then report and remind the user to publish a release. Do not
+  re-grill unless the user reopens scope.
 
 - **Prototype screens already exist, no release yet** — Keep writing the
   workspace directly: create, update, or delete specs as needed, then remind
@@ -416,9 +455,8 @@ no `create_change_request` tool. Use this loop every time you update specs
    (`title`, `note`), Decisions + Changelog (`rationale`). Do not leave this
    empty. Safe to call before more documents; it does not finish the CR.
 6. **Submit** with `submit-proposal` / `submit_proposal` when the whole
-   pass is done (README + every planned screen). Optionally
-   `comment-proposal` for follow-up. You may stage, describe, commit,
-   submit, and comment — **never apply, dismiss, or record a conclusion**.
+   pass is done (README + every planned screen). You may stage, describe,
+   commit, and submit — **never apply, dismiss, or record a conclusion**.
 7. Tell the user: open **Change requests** in Origin, apply or dismiss, then
    **publish a new release**. Staging is not publishing; default reads stay on
    the old snapshot until they publish.

@@ -1,7 +1,7 @@
 <page
     title="工单服务台"
     route="/desk/tickets"
-    description="企业 IT 服务台的工单管理主页。高复杂度黄金范例：把带权限分层、SLA 计时、批量流转、多状态机的复杂页面，拆解到可直接驱动研发与 QA 的实施级原型。主快照取「主管视角 + 已选中 3 行 + 列表常态」这一信息密度最高的静息态；所有浮层（抽屉、弹窗、下拉、Toast）都不画在主快照里，而是在对应触发元素的注释中说明触发条件并渲染。">
+    description="企业 IT 服务台的工单列表。从工作台进入；点行进工单详情，新建走创建页。">
 
     <view device="desktop" scale="0.62">
       <viewport device="desktop">

@@ -64,7 +64,7 @@ Playground: full-screen Mobile / Webapp items keep IA off the RPML document. Ope
 
 **List-item composition (generic list):**
 
-```xml
+```rpml
 <list inset header="Today">
   <list-item title="Alice" subtitle="Hey — still on for 7?" detail="6:32 PM" badge="2" chevron>
     <avatar initials="AL" size="40"></avatar>
@@ -170,8 +170,8 @@ When authoring complex forms or dashboards, **open Layout Patterns first** and a
 
 ### A. Desktop app shell + list
 
-```xml
-<page title="Inbox" route="/inbox" description="Loaded inbox, first row selected">
+```rpml
+<page title="Inbox" route="/inbox" description="邮件收件箱。从侧栏进入；点行进 conversation.rpml。">
   <view device="desktop">
     <viewport device="desktop">
       <app-shell>
@@ -193,8 +193,8 @@ When authoring complex forms or dashboards, **open Layout Patterns first** and a
 **Problem:** 8+ fields as a single-column `<form>` looks tall and sparse.  
 **Pattern:** put the form in a constrained panel, use `columns="2"` (desktop) or keep 1 column on mobile, and mark full-width fields with `span="all"`.
 
-```xml
-<page title="编辑资料" route="/settings/profile" description="双列表单，已填">
+```rpml
+<page title="编辑资料" route="/settings/profile" description="账号设置里的个人资料。从设置首页进入；保存后回 settings.rpml。">
   <view device="desktop">
     <viewport device="desktop">
       <panel padding="32" elevation="1">
@@ -239,8 +239,8 @@ Rules:
 
 Prefer `<app-shell height="auto">` so `ios-navbar` / body / `ios-tabbar` are first-class chrome (same role as desktop sidebar + navigator). Do not hand-roll an outer column flex just for chrome stacking.
 
-```xml
-<page title="流水" route="/ledger" description="当前在「流水」Tab">
+```rpml
+<page title="流水" route="/ledger" description="账本的流水列表。底栏「流水」Tab；点一笔进 entry-detail.rpml。">
   <view device="mobile">
     <viewport device="mobile" height="auto">
       <app-shell height="auto">
@@ -261,7 +261,7 @@ Prefer `<app-shell height="auto">` so `ios-navbar` / body / `ios-tabbar` are fir
 
 ### B2. Action sheet with money (children, not comma-CSV)
 
-```xml
+```rpml
 <!-- In an annotation enum-item, not the main snapshot chrome -->
 <ios-action-sheet title="选择账户">
   <ios-list-item icon="building" label="招商银行" detail="¥52,360"></ios-list-item>

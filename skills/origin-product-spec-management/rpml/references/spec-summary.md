@@ -14,11 +14,11 @@ Or load a standalone `.rpml` file at runtime via the playground (`?rpml=`), `npx
 
 Snapshot mode (default) — one screen with a scaled canvas and annotation pane:
 
-```html
-<page
+```rpml
+<page>
   title="..."
   route="/route"
-  description="Snapshot shows [representative state]"
+  description="[page role]; [how it connects to sibling screens]"
 >
   <view device="desktop|tablet|mobile" scale="0.65">
     <viewport device="desktop|tablet|mobile">
@@ -41,7 +41,7 @@ Snapshot mode (default) — one screen with a scaled canvas and annotation pane:
 
 Document mode (`mode="doc"`) — linear prose, no canvas, no route:
 
-```html
+```rpml
 <page title="..." mode="doc">
   <doc-heading level="1">Title</doc-heading>
   <doc-paragraph
@@ -58,7 +58,7 @@ Document mode (`mode="doc"`) — linear prose, no canvas, no route:
 
 **Canvas layer** — document structure and specification:
 
-- `page` — root; `title`, `route` (snapshot mode), `description`, optional `mode` (`snapshot` default | `doc` for linear documents with no canvas/route/pins).
+- `page` — root; `title`, `route` (snapshot mode), `description` (role + sibling relationships, short), optional `mode` (`snapshot` default | `doc` for linear documents with no canvas/route/pins).
 - `view` — scaled snapshot frame; `device`, `scale`, optional `width`/`height`.
 - `viewport` — snapshot viewport; same `device` as view.
 - `annotation` — specification block; top-level has `id` matching a pin, nested has no `id`.

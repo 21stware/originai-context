@@ -14,7 +14,7 @@ You are an RPML reviewer. Given an RPML document, check it against the following
 
 ### Information architecture
 
-- [ ] Page **purpose** (primary user job) is clear from `description` + snapshot; not a grab-bag of unrelated widgets.
+- [ ] Page **role** (what this route is for) and **sibling-page relationships** (entry / next / back) are clear from `description`; `description` is 1–2 sentences — not a feature inventory, snapshot-state note, or visual sentence.
 - [ ] A **priority stack** is visible: one dominant P0 surface; secondary/tertiary regions support it rather than compete at equal weight.
 - [ ] **Region map** is coherent: chrome / primary / secondary / tertiary / transient (overlays) are distinguishable; L1 pin labels match region roles.
 - [ ] Pin order roughly follows **scan/importance order**, not arbitrary paint order.
@@ -24,7 +24,7 @@ You are an RPML reviewer. Given an RPML document, check it against the following
 
 ### Visual weight (IA made visible)
 
-- [ ] **Visual sentence** is restatable from `description` + snapshot (one job, not a collage).
+- [ ] **Visual sentence** is restatable from the **snapshot** (one job, not a collage). Do not require it to be restated in `description`.
 - [ ] **One protagonist** owns area/isolation; **exactly one** `variant="primary"` (or one filled `ios-button`) in the main snapshot unless an enum makes a second mutually exclusive.
 - [ ] **Band order** (Identity / Proof / Action) is visible and matches the job (tool vs exhibit vs checkout) — not a default equal stack.
 - [ ] **Alignment** is one system (start / center / grid), not mixed without a band reason.
