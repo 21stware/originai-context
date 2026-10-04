@@ -2,7 +2,6 @@
 
 Local MCP bridge: `npx -y originai mcp` (stdio; uses `originai login`)
 Skill: `origin-product-spec-management` + RPML references.
-Remote HTTP MCP (advanced/CI): `https://mcp.getoriginai.com` + `ORIGIN_TOKEN`
 
 ## Install
 

@@ -1,0 +1,11 @@
+{
+  "name": "originai-product-spec",
+  "displayName": "OriginAI Product Spec",
+  "version": "0.1.0",
+  "description": "Write product specs as RPML files in your repo and review them as a live canvas in a Claude Artifact. Comment on the canvas, Claude edits the spec. No account, no token.",
+  "author": { "name": "Origin", "email": "hello@getoriginai.com" },
+  "homepage": "https://getoriginai.com",
+  "repository": "https://github.com/21stware/origin",
+  "license": "MIT",
+  "keywords": ["origin", "rpml", "product-spec", "artifact", "canvas"]
+}

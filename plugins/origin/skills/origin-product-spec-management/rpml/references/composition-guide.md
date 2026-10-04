@@ -61,6 +61,9 @@ Playground: full-screen Mobile / Webapp items keep IA off the RPML document. Ope
 | Table of records | `table` + `table-row` (or `data-table`) | `list` of fake columns |
 | Marketing / docs prose | `mode="doc"` + `doc-*` | Snapshot canvas for pure text |
 | Agent transcript | `chat` + agent primitives | Full-width rows; never wrap turns in chat bubbles |
+| Agent read-only activity ("Explored codebase") | `log` (collapsible) + `operation` children | A `tool-call` per search/read step — floods the transcript |
+| One action needing approval | `tool-call approve` (optionally with `operation` children for a batch) | A `log` — logs are read-only, not a gate |
+| Product-specific prompt input | `composer` decomposed into `prompt-queue`/`suggestions` (above), `prompt-input-headline`/`prompt-input-subheadline`, `agent-input`, `operation-tools`+`prompt-options`+`submit-button` | Cramming attachments/mode chips/queue into one flat `composer` when the product needs its own chrome |
 
 **List-item composition (generic list):**
 
@@ -160,6 +163,7 @@ Molecules with no dedicated primitive (amount keypad, balance hero, quick-action
 | `examples/03-list-with-filter.rpml` | List + filters |
 | `examples/05-dashboard.rpml` | Dashboard |
 | `examples/02-form-page.rpml` | Form-heavy screen |
+| `examples/13-ai-agent-workbench.rpml` | Agent panel: `log`+`operation` activity groups, `tool-call` approval batch, and the fully decomposed `composer` |
 | **Preview → Primitives → Layout Patterns** | Copy-paste recipes: multi-column form, modal form, inline field row, bento, dashboard grid, info header, master-detail |
 
 When authoring complex forms or dashboards, **open Layout Patterns first** and adapt a recipe rather than inventing a single-column stack.

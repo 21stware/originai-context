@@ -24,6 +24,7 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | layout       | Layout   | CSS grid: `columns="2"` (equal tracks) or `columns="260px 1fr"` (track list); rows, gap                       |
 | panel        | Layout   | White panel/card shell with optional padding and elevation                                                    |
 | pane         | Layout   | Logical region with **no visual chrome** (no border/fill/radius); optional `padding`/`width`; pin-friendly flat grouping |
+| ui-group     | Layout   | Labeled frame for one screen's UI on a shared canvas: `title` and `route`, then the interface. No annotation column |
 | navigator    | Layout   | Top navigation bar container                                                                                  |
 | sidebar      | Layout   | Side navigation container; supports collapsed state                                                           |
 | logo         | Layout   | Logo placeholder with size and label                                                                          |
@@ -192,15 +193,42 @@ All elements registered by the RPUI runtime. RPML authoring uses the bare langua
 | user-message    | Agent    | Full-width user turn; role title (`name`, default "User") is the first line of the text body — no chat bubble |
 | agent-message   | Agent    | Full-width agent turn; role title (`name`, default "Agent") is the first line of the text body — no chat bubble; `plain` for long-form article body |
 | system-message  | Agent    | Centered system/context note                                                                                       |
-| tool-call       | Agent    | Tool call; shows the tool name as headline + 工具 tag + status; args on their own line                             |
+| tool-call       | Agent    | Single self-contained tool call card: status glyph + name + state; optional args, body slot (can hold `operation` children for a batch), and Allow/Deny when `approve` / `state="approval"` |
+| log             | Agent    | Collapsible **activity group** (Codex/Claude "Explored codebase" pattern) — a lean summary line for several `operation` steps; distinct from `tool-call`. Collapsed by default (summary + step count); `expanded` shows every step |
+| operation       | Agent    | The **fillable sub-element**: one "thing the agent did" line (`kind` drives the icon: search/read/write/edit/run/fetch/web/delete/tool). Composable inside `log`, inside a `tool-call` body, or standalone |
 | agent-output    | Agent    | Command/code/tool output block (kind: text/code/terminal)                                                          |
 | reasoning       | Agent    | Collapsible thinking/reasoning block                                                                               |
 | message-actions | Agent    | Per-message action buttons (copy/retry/up/down/edit/share)                                                         |
-| suggestions     | Agent    | Suggested reply/prompt chips                                                                                       |
+| suggestions     | Agent    | Suggested reply/prompt chips; also usable as a `composer` child for the "above prompt input" zone                  |
 | typing          | Agent    | Streaming typing indicator                                                                                         |
-| composer        | Agent    | Prompt input bar; attachments (files), mode toggles (thinking/web/code), model pill, state idle/streaming/disabled |
+| composer        | Agent    | Prompt-input host — see the decomposition table below. Flat attributes (`value`/`placeholder`/`state`/`files`/`modes`/`model`/`variant`) alone render the legacy single-row dock; any of the structured children switch it into the fully decomposed layout |
+| prompt-queue    | Agent    | `composer` child — **[AbovePromptInput]** queue-up card (pending messages while the agent is busy); holds `queue-item` children |
+| queue-item      | Agent    | One pending row inside `prompt-queue`; `text`                                                                      |
+| prompt-input-headline    | Agent | `composer` child — **[PromptInputHeadLine]** top line inside the dock: attachments, replying-to context, picked region, etc. `text` or free children |
+| prompt-input-subheadline | Agent | `composer` child — **[PromptInputSubHeadLine]** quieter second line below the headline (a hint, context note, char count) |
+| agent-input     | Agent    | `composer` child — **[AgentInput]** the text row itself; `value`, `placeholder`. No attach icon of its own (see `operation-tools`) |
+| operation-tools | Agent    | `composer` child — **[OperationTools]** left-aligned toolbar buttons; `tools` CSV shorthand (attach/mic/web/search/image/code/link) or free children |
+| prompt-options  | Agent    | `composer` child — **[Options]** mode chips + model pill; `modes` CSV, `active-modes` CSV, `model`                 |
+| submit-button   | Agent    | `composer` child — **[SubmitButton/QueueUpButton]** the trailing control; `state`: send (default) \| stop (streaming) \| queue (busy — enqueues instead of interrupting) \| disabled; optional `label` |
 | citation        | Agent    | Source reference chip with index and title                                                                         |
-| token-usage     | Agent    | Token/context usage meter with used and limit                                                                      |
+| token-usage     | Agent    | Token/context usage meter with used and limit; a common `composer` "below prompt input" child                       |
+
+### Prompt input decomposition (`composer`)
+
+`composer` is the outer shell; every zone below is an **optional, independently omittable** child — leave any of them out and mix freely with the flat attributes:
+
+| Zone | Child element(s) | Notes |
+| --- | --- | --- |
+| `[AbovePromptInput]` | `prompt-queue` and/or `suggestions` | Renders **outside** the bordered dock (queue-up / recommendations) |
+| `[PromptInputHeadLine]` | `prompt-input-headline` | Top line **inside** the dock |
+| `[PromptInputSubHeadLine]` | `prompt-input-subheadline` | Second, quieter line inside the dock |
+| `[AgentInput]` | `agent-input` | The text row |
+| toolbar row | `operation-tools`, `prompt-options`, `submit-button` | Left-to-right in that order |
+| `[below prompt input]` | any other child (`token-usage`, `citation`, …) | Same footer contract as before |
+
+### Activity log vs. tool call
+
+Use **`log`** for a read-only, collapsible group of steps the agent already took (search/read/browse) — it defaults to collapsed so a long exploration doesn't dominate the transcript. Use **`tool-call`** for one action that carries its own state/approval gate. Both accept `operation` children — `operation` is the generic fillable row, not tied to either parent.
 
 ## Document mode primitives (mode="doc" pages only)
 

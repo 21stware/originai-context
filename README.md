@@ -2,7 +2,7 @@
 
 Public distribution for **Origin** coding-agent context (no private monorepo needed):
 
-1. **Claude Code marketplace** — plugin with local MCP (`originai mcp`) + skill
+1. **Claude Code marketplace** — `originai-product-spec` (free, local, no account) and `origin` (local MCP + skill)
 2. **Agent Skills / skills.sh** — installable skill via `npx skills add`
 3. Pointers to npm CLI + hosted docs / well-known discovery
 
@@ -34,6 +34,18 @@ npx skills add https://getoriginai.com
 ```
 
 ## Claude Code (plugin marketplace)
+
+### originai-product-spec — specs in your repo, canvas in a Claude Artifact
+
+Free, local, no account or token. Needs a Claude Code host with the `Artifact` tool and Node >= 18.
+
+```text
+/plugin marketplace add 21stware/originai-context
+/plugin install originai-product-spec@origin-claude-marketplace
+/originai-product-spec:init
+```
+
+### origin — Origin cloud projects (MCP + skill)
 
 ```text
 /plugin marketplace add 21stware/originai-context
@@ -69,13 +81,14 @@ Requires npm [`originai`](https://www.npmjs.com/package/originai) (`>=0.7.0` for
 | Cursor | login + `link --cursor --skill` + `originai mcp config --cursor` |
 | Codex | login + `link --codex --skill` |
 | Pi / Hermes / OpenCode | login + `link --skill` (or skills add above) |
-| Remote HTTP MCP (CI) | `https://mcp.getoriginai.com` + `ORIGIN_TOKEN` |
+| CI / headless | `ORIGIN_TOKEN` + `originai` CLI |
 
 ## Repo layout
 
 ```text
 .claude-plugin/marketplace.json     # Claude Code marketplace catalog
 plugins/origin/                     # Claude plugin (skill + .mcp.json)
+plugins/originai-product-spec/      # Claude plugin (local RPML canvas)
 skills/origin-product-spec-management/   # Agent Skills / skills.sh entry
   SKILL.md
   rpml/...

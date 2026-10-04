@@ -1,0 +1,419 @@
+# RPUI Web Components Reference for LLMs
+
+RPUI means Rapid Prototype UI. It is a static prototype specification and rendering runtime implemented with native Web Components.
+
+A generated prototype imports one file only:
+
+```html
+<script type="module" src="./dist/rpui.js"></script>
+```
+
+`dist/rpui.js` registers all custom elements and injects runtime CSS plus Lucide-style inline SVG icons. Do not import external CSS, image CDNs, icon CDNs, or UI frameworks.
+
+## Rendering RPML
+
+There are two supported ways to render RPML markup:
+
+1. Standalone HTML — import `dist/rpui.js` and write the `<page>` markup inline, or load a `.rpml` file with `dist/rpml-loader.js` (`<rpml-app src="./page.rpml">`). See the recommended HTML shape at the end of this document.
+2. React — use the `@21stware/rpui-react` package. It wraps the runtime as a `<RpmlRenderer>` component with incremental, scroll-preserving rendering, suitable for live editors where the RPML text changes as the user types.
+
+```tsx
+import { RpmlRenderer } from '@21stware/rpui-react';
+
+// rpml is a string of RPML markup (a <page>…</page> document).
+<RpmlRenderer rpml={rpml} debounce={150} onError={msg => setError(msg)} />
+```
+
+Install both packages: `@21stware/rpui` (runtime, peer) and `@21stware/rpui-react` (binding). Props: `rpml` (required source string), `debounce` (ms, default 0 — debounce re-renders for live editors), `mode` (`"view"` | `"edit"` | `"pick"`, default `"view"`), `theme` (color overrides as CSS vars), `selected` (CSS selectors to mark as selected in pick mode), `onPick` (called with `PickInfo` when user clicks an element in pick mode), `onLinkNavigate` (called with `to` and optional `section` when an `<anchor>` link is clicked; suppresses default URL navigation), `onElementSelectRender` (return a React node to portal-render inside the selected element in pick mode), `onError` (called with the parse-error message, or `null` when it clears), plus `className` / `style` on the host `<div>`. Each update re-parses and patches the host; already-initialized custom elements skip their setup, and scroll position is preserved. The RPML language and primitives below are identical regardless of which renderer you use. Full guide: `spec/react.md`.
+
+ARIA note: component states (checked / expanded / selected / disabled / current / pressed) follow the structure that the W3C ARIA Authoring Practices expect, so annotations can describe accessibility intent precisely. RPUI is static and does not emit runtime `role` / `aria-*` attributes — treat ARIA as a reference for which states to expose and document, not as runtime behavior.
+
+## Core model
+
+RPUI has two layers:
+
+1. Canvas layer: page shell, main snapshot view, numbered pins, annotations, nested annotations, and state enums.
+2. Snapshot Primitive layer: static UI building blocks for product UI snapshots and annotation slices.
+
+RPML is the authoring language. Its tags are clean single words (`page`, `view`, `button`, `navigator`); the runtime maps them onto Web Component tag names. Write the language tags below — do not write the underlying component tags.
+
+## Canvas tags
+
+```html
+<page title="页面标题" route="/route" description="页面说明">
+  <view device="desktop" scale="0.65">
+    <viewport device="desktop">
+      <!-- fixed-width, auto-height main snapshot built with primitives -->
+    </viewport>
+  </view>
+
+  <annotation id="1" label="区域说明">...</annotation>
+</page>
+```
+
+Tags:
+
+- `<page title="..." route="..." description="..." mode="snapshot|doc">` — root document canvas. Default (`snapshot`) keeps the title/main snapshot on the left and moves top-level annotations to the right-side scroll pane. `mode="doc"` switches to a single top-to-bottom document column with no `route` badge (see "Document mode" below).
+- `<view device="desktop|tablet|mobile" width="..." height="auto|900" scale="0.65">` — scaled main snapshot frame. Device presets are fixed width with auto height unless a numeric `height` is provided.
+- `<viewport device="desktop|tablet|mobile" width="..." height="auto|900">` — snapshot viewport. Use the same `device` as the view for clarity.
+- `<annotation id="1" label="...">` — top-level annotation linked to `data-pin="1"`; rendered in the right annotation pane.
+- `<annotation label="...">` — nested annotation; no `id` required.
+- `<annotation-global label="...">` — page-level, pin-less annotation for cross-cutting notes (permission matrix, glossary, global empty/error policy, conventions). Rendered at the **top** of the annotation pane, above the numbered annotations. Has no `id` and no pin. Use this instead of a numbered annotation for anything that doesn't map to one snapshot region.
+- `<enum>` — horizontal state/variant container.
+- `<enum-item label="..." description="...">` — one explicit state/variant card with optional short description.
+- `<anchor to="other.rpml" section="N" label="...">` — cross-page link to another prototype screen in the file set. `section` is optional and deep-links a specific annotation on the target page. Works in the gallery (playground / `serve` / compiled single-file) and degrades to a `?rpml=` reload in the standalone viewer.
+- `<diagram node-radius="8" edge-radius="10">` — renders Mermaid text (flowchart / state / sequence / class / ER) to inline SVG at mermaid's intrinsic 1:1 size (not scaled to the prose column). Place in an annotation or in `mode="doc"`. README process flows default to `flowchart LR`. Put the diagram header on its own line. Theme follows design tokens (`--rp-primary/text/muted/border-strong`) and light/dark mode. Post-process softens default sharp nodes (`node-radius`, default 8) and connector corners (`edge-radius`, default 10).
+
+## Document mode
+
+Set `mode="doc"` on `<page>` to render a reading document instead of the snapshot canvas — like Markdown built from RPML elements. There is no scaled `<view>`, no `data-pin` overlays, no right-hand annotation pane, and no `route` badge (documents don't map to one screen). Every child flows in source order. **Prose** (`doc-heading` / `doc-paragraph` / `doc-list` / `doc-quote`) wraps at `--rp-doc-measure` (48rem / docs column). **`<diagram>`** keeps mermaid's pixel size (1:1) and may be wider than the prose column — author README flows as `flowchart LR`. Use this for linear prose (release notes, specs, requirements). For interaction states, permission variants, and hidden UI, keep the default snapshot mode.
+
+```html
+<page title="发布说明" mode="doc">
+  <doc-heading level="1">RPUI 0.9 发布说明</doc-heading>
+  <doc-paragraph>文档模式把页面渲染成单栏可读文档，每一块都是 RPML 原语。</doc-paragraph>
+  <doc-list type="bullet">
+    <doc-list-item>新增 <code>doc-*</code> 排版原语。</doc-list-item>
+    <doc-list-item>页面级 <code>mode="doc"</code> 切换文档流。</doc-list-item>
+  </doc-list>
+  <doc-quote cite="设计原则">文档模式用来排布说明，而非绘制 UI。</doc-quote>
+</page>
+```
+
+Document typography primitives (only meaningful inside `mode="doc"`):
+
+- `<doc-heading level="1|2|3|4|5|6">` — heading; `level` defaults to `1`, and `level="2"` and up get a bottom border.
+- `<doc-paragraph>` — paragraph; may contain inline `strong` / `em` / `code` / `a`.
+- `<doc-list type="bullet|number">` + `<doc-list-item>` — ordered/unordered list.
+- `<doc-quote cite="来源">` — blockquote; `cite` renders as a `— 来源` line below the quote.
+
+Ordinary snapshot primitives (e.g. `<alert>`, `<table>`, `<chart>`, `<diagram>`) can also appear in the document flow as inline examples; they render in source order. The validator skips `view`/pin/annotation requirements in doc mode and only checks for `title`.
+
+## Pin rule
+
+Inside `<view>`, add `data-pin="N"` to meaningful regions. Number pins from 1 without gaps. Pin as many regions as the page actually has — there is no target count, and none should be padded in or dropped to hit one.
+
+Pin↔annotation parity is strict and bidirectional. Every `data-pin="N"` has exactly one matching top-level `<annotation id="N">`, and every numbered `<annotation id="N">` has exactly one matching `data-pin="N"`:
+
+```html
+<navigator data-pin="1">...</navigator>
+<annotation id="1" label="顶部导航">...</annotation>
+```
+
+A numbered annotation with no pin is a defect. For page-level IA (purpose / priority / regions / practice), use `<ia>` — pin-less, sibling of `<view>`. For other cross-cutting notes (permission matrix, glossary, global policy), use `<annotation-global>`. Neither belongs inside the snapshot.
+
+RPUI renders water-drop pins automatically. Never write pin DOM manually.
+
+## Section addressing, deep links, and enum numbering
+
+The runtime makes the canvas navigable. Authors do not write any of these attributes — they are generated:
+
+- Every annotation gets a `data-rp-section` path. Top-level annotations use their `id` (e.g. `3`); nested annotations use the parent path plus their 1-based position among annotation siblings (e.g. `3-2`, `3-2-1`). This supports up to 3–5 levels of nesting.
+- Every annotation renders a marker showing its **local index** (the last path segment): top-level = blue water-drop with the id; nested depth 1 = purple circle; nested depth ≥2 = green triangle. A nested annotation at `3-2` is marked `2`, at `3-2-1` is marked `1` — local to its parent, not the full path.
+- To explain a UI slice that is rendered inside an annotation, nest another `<annotation>` around/after it. The nested annotation gets its own numbered circle/triangle marker and its body indents one level: `view → ⬤ annotation 3 → UI slice → ① nested annotation → detail`.
+- Clicking a pin in the main snapshot, or clicking an annotation title, updates the URL to `?section=<path>` and scrolls/focuses the matching annotation with a dashed-outline highlight.
+- Loading a URL with `?section=3-2-1` focuses that nested annotation on load (reverse deep link).
+- Each `<enum-item>` is auto-numbered with a black square index badge (1, 2, 3…), so annotation prose can reference "state 2" unambiguously.
+
+Keep annotation and enum-item sibling order intentional and stable: the generated addresses depend on DOM order.
+
+
+## Layout and state rules
+
+- RPUI is static. Do not create interactions.
+- Do not use `onclick`, hover behavior, runtime focus, timers, API calls, or framework state.
+- Do not use external images; use `<image-placeholder>`.
+- Do not use `position:absolute` or `position:fixed` in snapshot content. RPUI owns pin positioning.
+- Do not use raw `div`, `button`, `input`, or `table` to represent product UI. Use RPML primitives.
+- Basic text and simple inline HTML are allowed inside annotations.
+- Top-level annotations render automatically in the right-side annotation pane. Do not manually create annotation pane wrappers.
+- The title/route/description and main snapshot stay visible on the left while the annotation pane scrolls independently on both axes.
+- Keep annotations compact and document-flow oriented. Do not stretch annotation content to full width.
+- Choose a device preset for new prototypes: `desktop` (1440px), `tablet` (834px), or `mobile` (390px). Presets use fixed width and auto height unless a numeric height is provided.
+- In the main snapshot, keep selects collapsed; show their expanded list in an annotation enum.
+- Overlays and transient feedback — `modal`, `drawer`, `dropdown`, `popover`, `tooltip`, `toast` — are interaction results, not page regions. Do not place them in the main snapshot. Instead: pin the trigger element (button/row/field), state the trigger condition in the annotation, and render the overlay inside that annotation (usually in an `<enum>`). Never stack mutually exclusive overlays/states side by side in the snapshot. A permanently docked side panel may stay open in the snapshot, but document its open/close trigger anyway.
+- Use `<enum>` for state families, permission variants, hidden interaction results, and validation branches. Use `enum-item description="..."` for a short clarification of a state.
+
+## Snapshot primitives
+
+### Containers
+
+- `<viewport device="desktop|tablet|mobile" width="1440" height="auto|900">` — fixed-width snapshot viewport; presets default to auto height.
+- `<layout columns="2|3|4|260px 1fr" rows="auto" gap="16">` — CSS grid. A bare count (`2`) is equal `1fr` tracks (same shorthand as `form` / `image-grid`). A track list (`260px 1fr`, `repeat(4, 1fr)`) is passed through. Not the same as `table columns="Name,Status"` (named fields).
+- `<panel padding="24" elevation="1|2">` — white panel/card shell.
+- `<card title="..." subtitle="..." has-image has-footer>` — content card.
+- `<modal width="480" title="..." has-footer>` — static opened modal.
+- `<drawer side="left|right" width="360" title="...">` — static opened drawer.
+- `<dropdown width="300" title="...">` — static opened dropdown.
+- `<popover width="300" title="...">` — static opened popover.
+- `<tooltip text="..." position="top|bottom|left|right">` — visible tooltip bubble.
+- `<scroll-area>…children…</scroll-area>` — custom-styled scrollable container (content-driven height by default; optional `height` attribute for explicit fixed height).
+- `<collapsible label="..." expanded>…children…</collapsible>` — expand/collapse section.
+- `<aspect-ratio ratio="16/9">…children…</aspect-ratio>` — container maintaining width/height ratio.
+- `<permission-gate title="Restricted" reason="Admin role required">…locked slot…</permission-gate>` — frosted scrim + floating reason chip over real content (not a solid grey slab).
+
+### Layout
+
+- `<flex-layout direction="row|column|row-reverse|column-reverse" gap="16" align="start|center|end|stretch" justify="start|center|end|between|around" wrap divider bg="muted" highlight bordered padding="16" py="12" px="16">` — primary flexbox container. Children support `flex="1|2|3|auto|grow|none"`, `flex-grow`, `flex-shrink="0"`, `flex-basis`, `align-self`, and `order`.
+- `<row gap="16" align="start|center|end|stretch">` — horizontal flex row (equivalent to `flex-layout direction="row"`).
+- `<col gap="16">` — vertical flex column (equivalent to `flex-layout direction="column"`).
+- `<section padding="16">` — block-level section with optional padding.
+- `<spacer size="16">` — empty spacing element (vertical by default, or horizontal inside a row).
+- `<divider vertical>` — horizontal divider (or vertical with `vertical`).
+- `<separator orientation="horizontal|vertical">` — visual separator; alias behavior similar to `divider`.
+- `<split-pane columns="1fr 1fr|2|320px 1fr">` — two-pane grid; a bare count is equal tracks (same shorthand as `layout`).
+- `<app-shell height="480|auto" min-height="720" direction="row-reverse" padding="16">` — application shell. Desktop: optional `<sidebar>` + optional `<navigator>` + main content. Mobile: optional `<ios-navbar>` + content + optional `<ios-tabbar>` (bottom chrome stays outside the scroll region). Prefer `height="auto" min-height="720"` on mobile so short screens still fill a phone frame; mobile shells keep a light border/radius + solid background.
+- `<toolbar>` — horizontal action bar with gap and stretch behavior; useful for tool/filter/search bars.
+
+### Typography
+
+- `<heading level="1|2|3|4|5|6" variant="muted" color="success|danger|warning|primary|white" align="start|center|end" weight="medium|semibold|bold">` — block heading. Defaults to level 3 when used inside panels/cards.
+- `<text size="xs|sm|md|lg|xl" variant="muted|secondary" color="success|danger|warning|primary|white" align="start|center|end" weight="medium|semibold|bold">` — block text paragraph. Default size is `md`.
+- `<icon type="plus" size="32" mode="line|fill" color="success|danger|warning|primary|muted|white">` — inline Lucide-style SVG icon (no external CDN).
+
+### Navigation
+
+- `<navigator height="64">` — top navigation container.
+- `<sidebar width="260" collapsed>` — side navigation container.
+- `<logo size="82" label="LOGO">` — logo placeholder.
+- `<list items="4" state="first-selected">` — generated list when no children are provided.
+- `<list-item label="..." icon="inbox" badge="12" state="default|selected|disabled">`.
+- `<tabs active="0">` with `<tab label="全部" badge="12">`; `active` can be index or label.
+- `<breadcrumb items="首页,设置,用户管理">`.
+- `<pagination total="128" current="2" page-size="20">`.
+- `<steps steps="填写信息,确认,完成" active="1">`.
+
+### Data and content display
+
+- `<table rows="6" columns="发件人,消息预览,时间,状态" has-checkbox has-action>` — static table. With no `<table-row>` children the runtime samples cell text from the column names; to pin exact cell values, add `<table-row>` children.
+- `<table-row content="张三,进行中" checked>` — explicit row; `content` is a **list** matching `columns` (use `,` for simple cells, `|` if a cell has commas/money). Present `<table-row>` children take priority over `rows` sampling.
+- `<table-list-row content="张三,zhang@example.com,管理员,激活" state="default|selected|unread|highlighted|disabled">` — standalone row slice for annotations/enums.
+- `<bulk-action-bar count="3" actions="标为已读,归档,删除">` — short action labels (comma OK); free text with commas → `|`.
+- `<empty label="暂无数据" description="..." has-action>`.
+- `<loading rows="4" kind="skeleton|spinner">` (`style="spinner"` also works for compatibility).
+- `<image-placeholder width="160" height="100" label="Image">`.
+- `<avatar size="32" initials="OC">`.
+- `<badge count="120" max="99">`.
+- `<tag label="已启用" color="green|orange|red" closable>`.
+- `<stat-card label="活跃用户" value="12,480" trend="up|down|flat" change="+12%">`.
+- `<chart kind="bar|line|area|donut|sparkline" data="12,28,18,34" labels="Q1,Q2,Q3,Q4" height="160" color="var(--rp-primary)">` — static inline-SVG data viz (offline, no CDN). Closes the dashboard gap; `sparkline` fits beside a metric.
+- `<avatar-group items="3" overflow="5" size="32">` — overlapping stacked avatars with `+N` overflow; or `<avatar>` children.
+- `<comment author="..." avatar="..." time="..." state="me">…body / nested <comment>…</comment>` — comment / discussion thread; nest `comment` for replies.
+- `<file-list items="3">` + `<file-item name="方案.pdf" size="1.2 MB" state="uploaded|uploading|error" progress="60">` — multi-file attachment list with states.
+- `<quota-bar label="API 调用" used="920" limit="1000">` — turns red at ≥90%.
+- `<api-key value="sk_live_••••3f9a">` — masked key with copy affordance.
+- `<audit-row actor="..." action="..." time="...">` — audit log entry.
+- `<workflow-node label="..." state="default|active|done|error">` — workflow state node.
+
+### Forms and controls
+
+All form states are explicit through attributes; there is no runtime focus or input behavior.
+
+- `<search state="default|focus|filled|error|disabled" placeholder="..." value="..." has-clear-button>`.
+- `<input state="default|focus|filled|error|disabled" label="..." placeholder="..." value="..." icon="user" has-clear-button error="..." help="...">` — `error` and `error-message` are both accepted (alias); `icon` adds a leading icon (no icon by default; `<search>` keeps its magnifier).
+- `<textarea state="default|focus|filled|error|disabled" rows="3" label="..." placeholder="..." value="..." error="..." help="...">`.
+- `<select state="collapsed|expanded|filled|error|disabled" label="..." value="..." options="A,B,C" error="...">`.
+- `<date-picker state="default|focus|filled|error|disabled" label="..." value="2026-06-07" error="...">`.
+- `<checkbox state="unchecked|checked|indeterminate|disabled|error" label="...">`.
+- `<checkbox-group label="..." direction="horizontal|vertical" error="...">…<checkbox>…</checkbox-group>` — choice group with group label + validation error.
+- `<radio state="unchecked|checked|disabled|error" label="...">`.
+- `<radio-group label="..." direction="horizontal|vertical" error="...">…<radio>…</radio-group>`.
+- `<toggle state="on|off|disabled|error" label="...">`.
+- `<password-input value="..." placeholder="..." label="..." state="default|focus|filled|error|disabled" has-show error="..." help="...">` — masked dots + optional eye toggle.
+- `<tag-input tags="A,B,C" placeholder="..." label="..." state="default|focus|filled|error|disabled" error="...">` — chip multi-input.
+- `<button label="..." variant="primary|secondary|ghost|danger|link" state="default|disabled|loading" icon="plus" size="sm|md|lg|icon">` — default height matches inputs (36px); `size="icon"` is a circular icon-only control (use with `icon`, omit label text)..
+- `<button-group>...</button-group>`.
+- `<form layout="vertical|horizontal" columns="1|2|3|4" gap="16">` — field grid. Use `columns="2"` (or `3`) for large desktop forms so they don't become a tall single stack; mobile stays 1 column. `layout="horizontal"` is label-left-of-control, not multi-field columns.
+- `<form-item label="..." required error="..." help="..." span="all">...</form-item>` — `span="all"` / `full` makes the field span every column (textarea, address, submit row).
+- `<form-field-description>` — field-level description/remark rendered below a field; accepts `text` attribute or child text.
+- `<radio-card label="..." description="..." state="unchecked|checked|disabled">` — selectable card with radio indicator; use inside a flex layout for option groups.
+- `<upload state="empty|has-file|uploading|error" file="document.pdf" progress="60" error="...">`.
+
+
+- `<alert type="info|success|warning|error" title="..." message="..." closable>`.
+- `<toast type="info|success|warning|error" title="..." message="..." closable>`.
+- `<banner type="info|success|warning|error" title="..." message="..." has-action closable>` — full-width page banner.
+- `<progress value="40" kind="bar|circle" status="success|error">`.
+- `<skeleton shape="line|block|card|list|avatar">` — loading placeholder.
+- `<countdown value="02:45:18">` — time-remaining chip.
+- `<result kind="success|error|warning|empty|offline|not-found|404|500" title="..." description="..." has-action>` — full-page result. Error/server kinds use danger red on icon + title; success uses green. (`status` / `type` accepted as aliases of `kind`.)
+
+### Data input (additional)
+
+- `<slider value="60" min="0" max="100" label="..." show-value state="default|error|disabled">`.
+- `<range low="20" high="70" min="0" max="100" state="default|error|disabled">` — dual-thumb range.
+- `<number-input value="42" state="default|error|disabled">` — input with +/- steppers.
+- `<rating value="3" max="5" state="default|disabled">` — star rating.
+- `<pin-input length="4" value="12" state="default|disabled">` — OTP/PIN cells.
+- `<color-swatch value="#2563eb" label="..." state="default|disabled">`.
+- `<autocomplete value="..." placeholder="..." options="A,B,C" open label="..." state="default|focus|filled|error|disabled" error="...">`.
+- `<combobox placeholder="..." options="A,B,C" value="A">` — search-select combo.
+- `<input-group prefix="https://" suffix=".com" placeholder="..." value="...">` — input with prefix/suffix addons.
+- `<toggle-group type="single|multiple" options="Bold,Italic,Underline" active="0">` + `<toggle-group-item label="..." active>` — toggle button group.
+- `<field label="..." description="..." error="...">…control…</field>` — Field wrapper (label + control + description/error).
+
+### Data display (additional)
+
+- `<tree>` + `<tree-item label="..." icon="..." level="0" expanded|collapsed state="selected">`.
+- `<timeline>` + `<timeline-item label="..." time="..." state="default|active|done|error">`.
+- `<calendar month="2026 年 6 月" selected="15">` — month grid.
+- `<kanban>` + `<kanban-column title="..." count="3">` + `<kanban-card label="..." tag="...">`.
+- `<code-block lang="ts" lines="5">` — code placeholder with line numbers.
+- `<diff rows="4">` — added/removed/context lines.
+- `<image-grid count="6" columns="3">`.
+- `<key-value>` + `<kv-row label="..." value="...">` — description list.
+- `<accordion>` + `<accordion-item label="..." expanded>`.
+- `<chip label="..." icon="..." closable>` — compact token.
+- `<carousel>` + `<carousel-item>` — horizontal scrolling carousel with prev/next buttons.
+- `<data-table columns="Name,Email,Status" rows="Alice,alice@mail.com,Active;Bob,bob@mail.com,Inactive">` — sortable-header table; rows are semicolon-separated, cells comma-separated.
+- `<hover-card trigger="@user" title="..." description="...">` — inline trigger showing a card on hover.
+- `<sonner title="..." description="..." type="info|success|warning|error">` — toast notification card.
+
+### Navigation & layout (additional)
+
+- `<segmented options="日,周,月" active="1">` — always set `options` (empty → Day/Week/Month default).
+- `<menu>` + `<menu-item label="..." icon="..." shortcut="⌘O" state="disabled">`.
+- `<context-menu items="复制,重命名,删除">`.
+- `<command-palette query="..." results="A,B,C">`.
+- `<toc items="概述,安装,用法">` — table of contents.
+- `<kbd keys="⌘,K">` — keyboard shortcut chips.
+- `<menubar>` + `<menubar-item label="File">` — horizontal menu bar.
+- `<nav-menu>` + `<nav-menu-item label="..." active>` — horizontal navigation menu with active indicator.
+
+
+### List attributes (global)
+
+Attributes like `options`, `items`, `actions`, `columns`, `content`, `steps`, `results`, `tags`, `icons`, `data` are **lists**:
+
+1. **Structured rows** (icon + label + trailing value) → **child elements** (e.g. `ios-list-item` inside `ios-action-sheet`).
+2. **Short tokens** with no internal comma → **comma `,`** (`options="支出,收入,转账"`, `icons="home,search,user"`, `data="12,28,18"`).
+3. **Items may contain commas** (money `¥52,360`, addresses, sentences) → **pipe `|`** for the whole attribute (`actions="招商 · ¥52,360|微信 · ¥3,870"`, `content="张三|北京,朝阳|备注"`).
+
+Never use `,` as both thousands grouping and list separator. Prefer children over stuffing multi-field rows into one CSV.
+
+### iOS platform (`ios-*`, use with device="mobile")
+
+- `<ios-navbar title="..." large back="返回" trailing="编辑" trailing-icon="edit" trailing-pin="1">` — large title puts trailing actions on the title row (right). `trailing-pin` / `action-pin` attaches `data-pin` to the trailing control so annotations can target Edit / + without covering the title.
+- `<ios-tabbar items="首页,流水,报表,我的" icons="home,list,bar-chart-2,user" active="流水">` — `active` is **this page's tab** (0-based index or label); do not hardcode `0` on every screen.
+- `<ios-list header="...">` + `<ios-list-item label="..." detail="¥52,360" icon="..." chevron>` — `detail` is same-row trailing text (balances, status).
+- `<ios-action-sheet title="选择账户">` + child `<ios-list-item label="招商银行" detail="¥52,360" icon="building">` — preferred. Flat `actions="A|B|C"` only for short labels; never put thousands commas inside comma-separated `actions`.
+- `<ios-alert title="..." message="..." actions="取消,确定">`.
+- `<ios-switch label="...">`, `<ios-segmented options="支出,收入,转账" active="0">` — **always set `options`**; empty defaults to Day/Week/Month.
+- `<ios-button label="..." variant="filled|tinted|plain">`, `<ios-search>`, `<ios-stepper>`.
+
+
+### Agent / conversational UI
+
+For chat, copilot, and agent prototypes:
+
+- `<chat>` — conversation container; wraps the message stream.
+- `<user-message text="..." initials="我">` — right-aligned user bubble (text attr or rich children).
+- `<agent-message name="Agent" text="...">` — left-aligned agent message (default role label `Agent`); children render as rich content (can contain tool-call/log/output/citation).
+- `<system-message text="...">` — centered system/context note.
+- `<tool-call name="search" state="running|done|error|approval" kind="tool" args="query=…" approve>` — one self-contained tool card: status glyph, kind tag, monospace name, state pill, optional args, a slotted body (diff/logs, or a batch of `<operation>` children — see below), and optional Allow/Deny when `approve` / `state="approval"`.
+- `<log summary="Explored codebase" state="running|done|error" duration="12s" expanded>` — a **collapsible activity group**, distinct from `tool-call`: a lean summary line for several read-only steps (Codex/Claude "Explored codebase" pattern). Collapsed by default (summary + step count only); `expanded` lists every `<operation>` child.
+- `<operation kind="search|read|write|edit|run|fetch|web|delete|tool" text="..." detail="..." state="done|running|error">` — the **fillable sub-element**: one "thing the agent did" line, icon driven by `kind`. Compose it inside `<log>` (grouped steps), inside a `<tool-call>` body (a batch of sub-steps under one approval), or standalone.
+- `<agent-output kind="text|code|terminal" label="..." text="...">` — framed command/code/tool output block.
+- `<reasoning expanded summary="Thought for 12s">…</reasoning>` — collapsible thinking block with custom summary.
+- `<message-actions actions="copy,retry,up,down,edit,share">` — per-message action buttons.
+- `<suggestions items="A,B,C">` — suggested reply / prompt chips. Usable standalone, or as a `<composer>` child for the "above prompt input" zone (recommendations).
+- `<typing>` — streaming typing indicator.
+- `<citation index="1" title="...">` — source reference chip.
+- `<token-usage used="1840" limit="8000">` — token/context usage meter; a common `<composer>` footer ("below prompt input") child.
+
+#### Composer — the decomposed prompt input
+
+`<composer>` is the outer shell for any agent product's prompt input. **Flat attributes alone** (no structured children) still render the legacy single-row dock unchanged:
+
+```html
+<composer value="..." placeholder="..." state="idle|streaming|disabled" modes="thinking,web" files="report.pdf" model="Origin" hide-modes></composer>
+```
+
+For anything more product-specific, nest the optional named zones — leave any of them out, and mix freely with the flat attributes above:
+
+```html
+<composer>
+  <prompt-queue title="Queued" count="1">                          <!-- [AbovePromptInput] — outside the card -->
+    <queue-item text="Then run typecheck"></queue-item>
+  </prompt-queue>
+  <!-- or <suggestions items="Continue,Try again"></suggestions> for recommendations -->
+
+  <prompt-input-headline text="Replying to comment · line 42"></prompt-input-headline>   <!-- [PromptInputHeadLine] -->
+  <prompt-input-subheadline text="Workspace: origin · main"></prompt-input-subheadline>  <!-- [PromptInputSubHeadLine] -->
+  <agent-input placeholder="Message the agent…"></agent-input>                           <!-- [AgentInput] -->
+
+  <operation-tools tools="attach,mic,web"></operation-tools>                             <!-- [OperationTools] -->
+  <prompt-options modes="thinking,web,code" active-modes="thinking" model="Origin"></prompt-options>  <!-- [Options] -->
+  <submit-button state="send|stop|queue|disabled" label="Queue"></submit-button>         <!-- [SubmitButton/QueueUpButton] -->
+
+  <token-usage used="1840" limit="8000"></token-usage>                                   <!-- [below prompt input] -->
+</composer>
+```
+
+- `<prompt-queue>` + `<queue-item text="...">` — pending messages waiting for the current turn to finish; the agent keeps working, the next message queues instead of interrupting.
+- `<prompt-input-headline text="...">` / `<prompt-input-subheadline text="...">` — optional lines pinned above the text row, inside the card (`text` attr or free children like `file-item`/`comment`/`tag`).
+- `<agent-input value="..." placeholder="...">` — the text row; no attach icon of its own (put attach in `operation-tools` so the two concerns stay separate).
+- `<operation-tools tools="attach,mic,web,search,image,code,link">` — left-aligned toolbar icon buttons; extra children (e.g. a custom `<button>`) append after.
+- `<prompt-options modes="..." active-modes="..." model="...">` — mode chips (`thinking`/`web`/`code`/`search`/`canvas`) + a trailing model pill.
+- `<submit-button state="send|stop|queue|disabled" label="...">` — the one trailing control. `queue` is the "agent is busy, this enqueues instead of sending" variant — pair it with `<prompt-queue>` above.
+- Any other child (not one of the above) still becomes the footer row — the "below prompt input" zone — exactly like today (`token-usage`, `citation`, custom nodes).
+
+## Icon rule
+
+Use Lucide icon names through the `icon` attribute when available:
+
+```html
+<button label="新建" icon="plus" variant="primary"></button>
+<list-item label="已归档" icon="archive"></list-item>
+```
+
+The runtime renders inline SVG. Do not import lucide or any icon CDN.
+
+## State coverage checklist
+
+For each page, consider whether these states apply:
+
+- loaded with normal data
+- empty data
+- loading/skeleton/spinner
+- error/retry
+- search default/focus/filled/no-result
+- filter collapsed/expanded
+- row default/selected/unread/highlighted/disabled
+- bulk selection off/on
+- pagination first/middle/last/no more pages
+- permission variants: readonly/admin/owner/external collaborator
+- destructive confirmation
+- validation default/filled/error/disabled
+
+## Recommended complete HTML shape
+
+```html
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <script type="module" src="./dist/rpui.js"></script>
+</head>
+<body>
+  <page title="页面标题" route="/route" description="页面说明">
+    <view device="desktop" scale="0.65">
+      <viewport device="desktop">
+        <!-- main snapshot built only with RPML primitives -->
+      </viewport>
+    </view>
+
+    <annotation id="1" label="区域说明">
+      简短说明此区域的职责。
+      <enum>
+        <enum-item label="默认" description="正常可用的数据态。"><empty label="示例"></empty></enum-item>
+        <enum-item label="加载" description="首次进入或刷新时展示。"><loading rows="3"></loading></enum-item>
+      </enum>
+    </annotation>
+  </page>
+</body>
+</html>
+```
+
+For a realistic high-complexity reference (every region pinned and annotated, deep nesting where the domain warrants, implementation-level annotation bodies, permission matrix in `<annotation-global>`, state machines, SLA boundaries), see `rapid-prototype-implement/references/example-reference.rpml`. Refer to `SKILL.md` for the recursive decomposition method, coverage-matrix technique, and complexity expectations.
+

@@ -1,0 +1,46 @@
+<title>@@TITLE@@</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#15181d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101216;--fg:#e8eaee;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101216;--fg:#e8eaee;color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg)}
+</style>
+<script>globalThis.__RPML_DOCS__=@@DOCS@@;globalThis.__RPML_TITLE__=@@TITLE_JSON@@;globalThis.__RPML_CHROME__=@@CHROME@@;</script>
+<script>@@GALLERY@@</script>
+<script>
+// Keep the reader's page, pan and zoom across a republish. A republish loads a
+// new page document, so the canvas transform (memory only) would reset. Prefer
+// the viewer's hot-update snapshot; localStorage is the fallback.
+(function () {
+  var KEY = "rpml-view-state";
+  var hot = window.claude && window.claude.hot;
+  function viewer() { return globalThis.__RPML_VIEWER__; }
+  function current() {
+    try { return viewer() && viewer().getViewState(); } catch (e) { return null; }
+  }
+  function save() {
+    var st = current();
+    if (!st) return;
+    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  if (hot && typeof hot.snapshot === "function") {
+    try { hot.snapshot(function () { return { view: current() }; }); } catch (e) {}
+  }
+  var restored = false;
+  var from = hot && hot.data;
+  var saved = null;
+  try {
+    saved = from && from.view ? from.view : JSON.parse(localStorage.getItem(KEY) || "null");
+  } catch (e) {}
+  var tries = 0;
+  (function wait() {
+    var v = viewer();
+    if (!v) { if (tries++ < 40) return setTimeout(wait, 100); return; }
+    if (saved) v.restoreViewState(saved);
+    restored = true;
+  })();
+  setInterval(function () { if (restored) save(); }, 1000);
+  window.addEventListener("pagehide", save);
+})();
+</script>

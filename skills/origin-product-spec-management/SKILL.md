@@ -13,8 +13,7 @@ single annotated layout.
 **Tools (preferred order):**
 1. **Origin MCP tools** — when `get_diff`, `list_documents`, `whoami`, etc. are
    available in this session, **use them**. Do not shell out to the CLI for the
-   same operation. (Claude Code plugin runs local `originai mcp`; remote clients
-   may use `https://mcp.getoriginai.com`.)
+   same operation. (Claude Code plugin runs local `originai mcp`.)
 2. **`originai` CLI** (`bunx originai` / `npx originai`) — fallback when MCP is
    not connected (Codex, Pi, Hermes, OpenCode, skills.sh installs, CI). Never
    invent raw HTTP/curl against the API.
@@ -55,7 +54,7 @@ If this file is missing placeholders, run `npx originai link --project <id>` wit
 **Token model**
 - **Humans (default):** `npx originai login` → `~/.origin/settings.json`.
   Claude Code plugin MCP uses local `originai mcp`, which reads this store.
-- **CI / headless / remote-only MCP hosts:** `ORIGIN_TOKEN=oat_…`
+- **CI / headless:** `ORIGIN_TOKEN=oat_…`
   (create under Origin Settings → Access tokens). Never commit.
 - Diagnose: `npx originai doctor`.
 
@@ -224,7 +223,6 @@ the `originai` CLI only.
 ### A. Origin MCP (preferred when connected)
 
 Local bridge (Claude plugin default): `npx originai mcp` (uses `originai login`).
-Remote HTTP (advanced/CI): `https://mcp.getoriginai.com` with Bearer `ORIGIN_TOKEN`.
 Tool names match origin-api actions (snake_case). Pass `project_id` from
 `.origin.json` when required. Default reads = latest **published release**.
 
@@ -243,7 +241,6 @@ Tool names match origin-api actions (snake_case). Pass `project_id` from
 | `validate` | RPML check (`source` and/or `file_id`) |
 | `search_shots` / `get_shot` / `list_shot_facets` | Layout shots. MCP: `search_shots`. In-app agent uses `retrieve_shots` (same catalog, different name). Pick by platform / business / IA; widget galleries are composition only |
 | `sync_origin_json` | Compute the `.origin.json` pointer to write after implementing a published release |
-| `list_webhooks` / `create_webhook` / `delete_webhook` | Outbound events (`release.published`, `proposal.decided`) |
 
 After implementing a release, call MCP `sync_origin_json` and write `origin_json` into `.origin.json`, or run CLI `bunx originai sync`.
 

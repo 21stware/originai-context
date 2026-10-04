@@ -13,7 +13,7 @@
       "name": "origin",
       "source": "./plugins/origin",
       "description": "Origin RPML product-spec skill + local originai mcp. Run: npx originai login",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Origin",
         "email": "hello@getoriginai.com"
@@ -26,6 +26,24 @@
         "product-spec"
       ],
       "repository": "https://github.com/21stware/originai-context"
+    },
+    {
+      "name": "originai-product-spec",
+      "source": "./plugins/originai-product-spec",
+      "description": "Write product specs as RPML in your repo and review them as a live canvas in a Claude Artifact. Comment on the canvas, Claude edits the spec. No account, no token.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Origin",
+        "email": "hello@getoriginai.com"
+      },
+      "homepage": "https://getoriginai.com",
+      "keywords": [
+        "origin",
+        "rpml",
+        "product-spec",
+        "artifact",
+        "canvas"
+      ]
     }
   ]
 }
