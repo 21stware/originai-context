@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "originai",
+        "originai@0.8.6",
         "mcp"
       ]
     }
