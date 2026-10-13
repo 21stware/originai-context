@@ -364,6 +364,7 @@ Close the same message with a 3-bullet recap (scope / device / job) and
   applicable. For mobile pages, include tab structure and main UX flow
   descriptions. The page/route planning section is the worklist for the
   screen specs you write next — every IN-scope entry becomes a `.rpml`.
+  **Page codes (required).** Every surface and every screen gets an outline code. No product-name prefix. Surfaces are letters (App = A, SaaS portal = B, admin = C). A's home is A-1; a nested page is A-1-1. File name and `<page title>` are `{code} {Page name}` — `A-1 Home.rpml`, title `A-1 Home`. README is uncoded. The page/route plan lists every screen as `<anchor to="A-1 Home.rpml" label="A-1 Home">`.
 
   Skeleton:
   ```html
@@ -381,8 +382,10 @@ flowchart LR
 flowchart LR
   A[User login] --> B[Enter home]
     </diagram>
+    <doc-heading level="2">Pages and routes</doc-heading>
     <doc-list type="bullet">
-      <doc-list-item>Feature breakdown by priority</doc-list-item>
+      <doc-list-item><anchor to="A-1 Home.rpml" label="A-1 Home">A-1 Home</anchor> — entry / P0</doc-list-item>
+      <doc-list-item><anchor to="A-1-1 Settings.rpml" label="A-1-1 Settings">A-1-1 Settings</anchor></doc-list-item>
     </doc-list>
   </page>
   ```

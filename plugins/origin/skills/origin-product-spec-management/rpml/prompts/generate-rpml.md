@@ -46,11 +46,12 @@ The widget composition shots later in this prompt are **primitive recipes** (how
 Decide before inventing pages:
 
 - Screen inventory and routes (what exists, entry/exit).
+- **Page codes** — every surface and every screen gets an outline code, no product-name prefix. Surfaces are letters (App = A, SaaS portal = B, admin = C). A's home is A-1; a nested page is A-1-1. File name and `<page title>` are `{code} {Page name}` (`A-1 Home.rpml`, title `A-1 Home`). README is uncoded.
 - Primary navigation model (sidebar, top nav, mobile tabs, stack).
 - What each screen **owns** vs. what is shared chrome.
 - Which user jobs map to which screens (no two screens fighting for the same P0 job without a reason).
 
-Encode product IA in `README.rpml` (and keep chrome consistent across screen files). Also lock one **visual language** for the set: a single material (retail-flat / tool-dense / system-translucent) and one primary-action punctuation rule, so sibling screens don't mix card chrome with tool-dense hairlines.
+Encode product IA in `README.rpml` (and keep chrome consistent across screen files). The page/route plan lists every screen with its code and a matching `<anchor to="A-1 Home.rpml" label="A-1 Home">`. Also lock one **visual language** for the set: a single material (retail-flat / tool-dense / system-translucent) and one primary-action punctuation rule, so sibling screens don't mix card chrome with tool-dense hairlines.
 
 ### 2.2 Page-level IA (every screen, generate or update)
 

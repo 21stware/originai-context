@@ -43,6 +43,10 @@ bun run claude-marketplace:sync     # plugin + marketplace tree
 bun run publish:originai-context    # sync:skills + push public repo
 ```
 
+## Versions
+
+Plugins carry no `version`; Claude Code uses the public repo's commit SHA, so each publish is an update. Do not add one (an unchanged version pins users to their cached copy). `claude plugin validate` passes without it; `--strict` warns about it.
+
 ## CI
 
 Workflow: `.github/workflows/publish-originai-context.yml`  
