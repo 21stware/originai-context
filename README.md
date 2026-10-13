@@ -2,7 +2,7 @@
 
 Public distribution for **Origin** coding-agent context (no private monorepo needed):
 
-1. **Claude Code marketplace** — `originai-product-spec` (free, local, no account) and `origin` (local MCP + skill)
+1. **Claude Code marketplace** — `originai-product-spec` (free, local, no account) and `origin-spec` (local MCP + skill)
 2. **Agent Skills / skills.sh** — installable skill via `npx skills add`
 3. Pointers to npm CLI + hosted docs / well-known discovery
 
@@ -45,11 +45,11 @@ Free, local, no account or token. Needs a Claude Code host with the `Artifact` t
 /originai-product-spec:init
 ```
 
-### origin — Origin cloud projects (MCP + skill)
+### origin-spec — Origin cloud projects (MCP + skill)
 
 ```text
 /plugin marketplace add 21stware/originai-context
-/plugin install origin@origin-claude-marketplace
+/plugin install origin-spec@origin-claude-marketplace
 ```
 
 ```bash
@@ -87,7 +87,7 @@ Requires npm [`originai`](https://www.npmjs.com/package/originai) (`>=0.7.0` for
 
 ```text
 .claude-plugin/marketplace.json     # Claude Code marketplace catalog
-plugins/origin/                     # Claude plugin (skill + .mcp.json)
+plugins/origin-spec/                     # Claude plugin (skill + .mcp.json)
 plugins/originai-product-spec/      # Claude plugin (local RPML canvas)
 skills/origin-product-spec-management/   # Agent Skills / skills.sh entry
   SKILL.md

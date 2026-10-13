@@ -1,5 +1,5 @@
 {
-  "name": "origin",
+  "name": "origin-spec",
   "displayName": "OriginAI",
   "description": "Origin product specs (RPML): MCP tools via originai mcp + authoring skill. Run: npx originai login",
   "author": {

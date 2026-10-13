@@ -10,8 +10,8 @@
   },
   "plugins": [
     {
-      "name": "origin",
-      "source": "./plugins/origin",
+      "name": "origin-spec",
+      "source": "./plugins/origin-spec",
       "description": "Local MCP (originai mcp) + RPML product-spec skill. Run: npx originai login",
       "author": {
         "name": "OriginAI",
@@ -44,5 +44,8 @@
       ],
       "repository": "https://github.com/21stware/originai-context"
     }
-  ]
+  ],
+  "renames": {
+    "origin": "origin-spec"
+  }
 }

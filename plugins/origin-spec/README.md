@@ -1,4 +1,4 @@
-# Origin (Claude Code plugin)
+# origin-spec (Claude Code plugin)
 
 Connects Claude to your product specs in [Origin](https://getoriginai.com): read the released specs a feature should match, check code against them, and propose spec changes back as change requests that a person on your team applies. Specs are RPML documents, one screen per file, covering every state, permission and edge case.
 
@@ -11,13 +11,13 @@ You need an Origin account and a project.
 
 ```text
 /plugin marketplace add 21stware/originai-context
-/plugin install origin@origin-claude-marketplace
+/plugin install origin-spec@origin-claude-marketplace
 ```
 
 Or from a local checkout of this marketplace tree:
 
 ```bash
-claude --plugin-dir ./plugins/origin
+claude --plugin-dir ./plugins/origin-spec
 ```
 
 ```bash

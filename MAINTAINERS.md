@@ -30,7 +30,7 @@ Everything else skill-related is **generated**:
 bun run sync:skills
 # → packages/skills/assets/
 # → packages/claude-plugin/skills + .mcp.json
-# → packages/claude-marketplace/plugins/origin/{skills,.mcp.json,.claude-plugin}
+# → packages/claude-marketplace/plugins/origin-spec/{skills,.mcp.json,.claude-plugin}
 # → frontend/public/.well-known/agent-skills + skills-full.txt
 ```
 
@@ -71,6 +71,6 @@ bun run publish:originai-context
 
 ## Not covered by this publish
 
-- **npm `originai`**: version bump in `packages/skills/package.json` + `npm publish` (`prepublishOnly` runs `sync-assets`). The `origin` plugin's `.mcp.json` pins `originai@<that version>` (the plugin directory blocks unpinned `npx`), so `npm publish` the bump **before** it reaches `main`; the public publish refuses a pin npm doesn't have yet.
+- **npm `originai`**: version bump in `packages/skills/package.json` + `npm publish` (`prepublishOnly` runs `sync-assets`). The `origin-spec` plugin's `.mcp.json` pins `originai@<that version>` (the plugin directory blocks unpinned `npx`), so `npm publish` the bump **before** it reaches `main`; the public publish refuses a pin npm doesn't have yet.
 - **Website / well-known skill**: `bun run sync:skills` or `frontend` `build:spa` (`generate-well-known-skill.ts` → getoriginai.com)
 - **Docs site**: `apps/docs` via normal web deploy
