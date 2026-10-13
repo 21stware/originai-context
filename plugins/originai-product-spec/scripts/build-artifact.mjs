@@ -9,7 +9,7 @@
  * Everything non-ASCII except the <title> is \u-escaped so the page renders
  * the same whatever encoding the host decodes it with.
  *
- * ORIGIN_PLUGIN_ASSETS_DIR overrides where gallery.js / brand.svg are read from (tests).
+ * --assets <dir> overrides where gallery.js / brand.svg are read from (tests).
  */
 import { readFileSync, readdirSync, statSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, relative, sep, dirname, resolve, basename } from "node:path";
@@ -20,12 +20,13 @@ const root = join(here, "..");
 const MAX_BYTES = 12 * 1024 * 1024; // Artifact pages are capped at 16MB; leave headroom.
 
 function parseArgs(argv) {
-  const o = { specs: "specs", out: join(".origin", "artifact.html"), title: "" };
+  const o = { specs: "specs", out: join(".origin", "artifact.html"), title: "", assets: "" };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--specs") o.specs = argv[++i] ?? o.specs;
     else if (a === "--out") o.out = argv[++i] ?? o.out;
     else if (a === "--title") o.title = argv[++i] ?? "";
+    else if (a === "--assets") o.assets = argv[++i] ?? "";
     else if (a === "-h" || a === "--help") {
       console.log("Usage: build-artifact.mjs [--specs specs] [--out .origin/artifact.html] [--title Name]");
       process.exit(0);
@@ -84,7 +85,7 @@ if (!docs.length) {
   process.exit(1);
 }
 
-const assetsDir = process.env.ORIGIN_PLUGIN_ASSETS_DIR || join(root, "assets");
+const assetsDir = opts.assets || join(root, "assets");
 const galleryPath = join(assetsDir, "gallery.js");
 if (!existsSync(galleryPath)) {
   console.error(`Missing ${galleryPath}. The plugin was not built: run \`bun run --cwd packages/claude-plugin-local build\` in the Origin repo.`);

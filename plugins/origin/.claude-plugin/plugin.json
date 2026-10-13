@@ -1,9 +1,9 @@
 {
   "name": "origin",
-  "displayName": "Origin",
+  "displayName": "OriginAI",
   "description": "Origin product specs (RPML): MCP tools via originai mcp + authoring skill. Run: npx originai login",
   "author": {
-    "name": "Origin",
+    "name": "OriginAI",
     "email": "hello@getoriginai.com"
   },
   "homepage": "https://getoriginai.com",

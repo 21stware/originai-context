@@ -1,7 +1,7 @@
 {
   "name": "origin-claude-marketplace",
   "owner": {
-    "name": "Origin",
+    "name": "OriginAI",
     "email": "hello@getoriginai.com"
   },
   "metadata": {
@@ -14,7 +14,7 @@
       "source": "./plugins/origin",
       "description": "Local MCP (originai mcp) + RPML product-spec skill. Run: npx originai login",
       "author": {
-        "name": "Origin",
+        "name": "OriginAI",
         "email": "hello@getoriginai.com"
       },
       "homepage": "https://getoriginai.com",
@@ -31,7 +31,7 @@
       "source": "./plugins/originai-product-spec",
       "description": "Write product specs as RPML in your repo and review them as a live canvas in a Claude Artifact. Comment on the canvas, Claude edits the spec. No account, no token.",
       "author": {
-        "name": "Origin",
+        "name": "OriginAI",
         "email": "hello@getoriginai.com"
       },
       "homepage": "https://getoriginai.com",

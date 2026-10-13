@@ -2,7 +2,7 @@
   "name": "originai-product-spec",
   "displayName": "OriginAI Product Spec",
   "description": "Write product specs as RPML files in your repo and review them as a live canvas in a Claude Artifact. Comment on the canvas, Claude edits the spec. No account, no token.",
-  "author": { "name": "Origin", "email": "hello@getoriginai.com" },
+  "author": { "name": "OriginAI", "email": "hello@getoriginai.com" },
   "homepage": "https://getoriginai.com",
   "repository": "https://github.com/21stware/originai-context",
   "license": "MIT",

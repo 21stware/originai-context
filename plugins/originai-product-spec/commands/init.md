@@ -1,7 +1,7 @@
 ---
 description: Create specs/ for this repo (README plus the key screens as RPML) and publish the live canvas
 argument-hint: "[what the product is, or which screens to start with]"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Artifact, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Write(./specs/**), Edit(./specs/**), Write(./.gitignore), Edit(./.gitignore), Artifact, AskUserQuestion
 ---
 
 Set up the product specs for this repo and publish the canvas. Follow the `origin-specs` skill for layout, scripts and publishing, and the `rapid-prototype-implement` skill for how to write RPML.
